@@ -54,4 +54,4 @@
 #include <queue>
 using namespace std;
 
-#include "../libutils/haconfig.h"
+#include "haconfig.h"

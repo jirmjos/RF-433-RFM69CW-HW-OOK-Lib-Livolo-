@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Serializable.h"
-#include "../libutils/logging.h"
+#include "../libs/libutils/logging.h"
 
 
 void CSerializable::Dump(CLog *log)
