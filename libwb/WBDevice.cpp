@@ -1,5 +1,8 @@
 #include "stdafx.h"
 #include "WBDevice.h"
+#ifdef USE_CONFIG
+	#include "../libutils/ConfigItem.h"
+#endif
 
 const char *g_Topics[] =
 {
