@@ -82,6 +82,7 @@ class RFM69OOK {
     byte readReg(byte addr);
     void writeReg(byte addr, byte val);
     void readAllRegs();
+    uint32_t getAFC(){return 0;};
 
     // functions related to OOK mode
     void receiveBegin();
