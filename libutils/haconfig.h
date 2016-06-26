@@ -11,6 +11,9 @@
 #elif defined(WIN32)
 #	define HA_WIN32
 #	define HA2
+#	define HAVE_JSON_JSON_H
+#	define HAVE_LIBXML_TREE_H
+#	define HAVE_LUA_H
 //#define snprintf sprintf_s
 #else
 #	define HA_LINUX

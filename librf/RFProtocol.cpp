@@ -44,7 +44,7 @@ string CRFProtocol::Parse(base_type* data, size_t dataLen)
 
 	return "";
 }
-
+ 
 string CRFProtocol::tryDecode(string data)
 {
 	if (data.length() >= m_Bits)
@@ -130,7 +130,7 @@ string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
 		}
 	}
 
-	return decodedRaw+"?"+decodedRawRev;
+	return decodedRaw;
 }
 
 bool CRFProtocol::SplitPackets(const string &rawData, string_vector& rawPackets)
@@ -245,7 +245,7 @@ string CRFProtocol::ManchesterDecode(const string&raw, bool expectPulse, char sh
 		case expectStartPulse:   // ќжидаем короткий пульс, всегда 1
 			if (*c == shortPulse)
 			{
-				res += "1";
+				res += expectPulse ? "1":"0";
 				state = expectMiddlePause;
 			}
 			else
@@ -256,7 +256,7 @@ string CRFProtocol::ManchesterDecode(const string&raw, bool expectPulse, char sh
 		case expectStartPause:  // ќжидаем короткую паузу, всегда 0
 			if (*c == shortPause)
 			{
-				res += "0";
+				res += expectPulse?"0":"1";
 				state = expectMiddlePulse;
 			}
 			else
@@ -272,7 +272,7 @@ string CRFProtocol::ManchesterDecode(const string&raw, bool expectPulse, char sh
 			else if (*c == longPulse)
 			{
 				state = expectMiddlePause;
-				res += "1";
+				res += expectPulse? "1":"0";
 			}
 			else
 			{
@@ -287,7 +287,7 @@ string CRFProtocol::ManchesterDecode(const string&raw, bool expectPulse, char sh
 			else if (*c == longPause)
 			{
 				state = expectMiddlePulse;
-				res += "0";
+				res += expectPulse?"0":"1";
 			}
 			else
 			{

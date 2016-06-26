@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "RFProtocolLivolo.h"
-#include "../libs/libutils/strutils.h"
+#include "../libutils/strutils.h"
 
 /*V0
 static range_type g_timing[4] =
