@@ -96,6 +96,10 @@ string CRFProtocolNooLite::DecodePacket(const string& raw)
 
 	string_vector v;
 	SplitString(raw, 'd', v);
+
+	if (v.size()==1)
+		SplitString(raw, 'a', v);   // TODO CheckIT
+
 	string res;
 
 	for_each(string_vector, v, i)

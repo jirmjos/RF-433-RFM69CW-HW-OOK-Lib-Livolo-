@@ -130,7 +130,7 @@ string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
 		}
 	}
 
-	return decodedRaw +"?" + decodedRawRev;
+	return decodedRaw +"?" + decodedRawRev; // TODO Remove and fix RST
 }
 
 bool CRFProtocol::SplitPackets(const string &rawData, string_vector& rawPackets)
