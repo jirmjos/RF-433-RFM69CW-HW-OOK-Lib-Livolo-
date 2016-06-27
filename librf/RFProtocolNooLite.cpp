@@ -77,7 +77,7 @@ bool CRFProtocolNooLite::bits2packet(const string& bits, uint8_t *packet, size_t
 	uint8_t tmpPacket[30];
 	for (int i = 0; i < bytes; i++)
 	{
-		packet[bytes-1-i] = bits2long(reverseBits.substr(i * 8, min(8, reverseBits.length() - i * 8)));
+		packet[bytes - 1 - i] = bits2long(reverseBits.substr(i * 8, 8));// min(8, reverseBits.length() - i * 8)));
 	}
 
 	unsigned char packetCrc = crc8(packet, bytes);
