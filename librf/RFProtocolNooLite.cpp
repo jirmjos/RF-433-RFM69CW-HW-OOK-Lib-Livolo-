@@ -63,7 +63,29 @@ unsigned char CRFProtocolNooLite::getByte(const string &bits, size_t first, size
 
 bool CRFProtocolNooLite::bits2packet(const string& bits, uint8_t *packet, size_t *packetLen)
 {
-	unsigned char fmt = (unsigned char)bits2long(bits.substr(bits.length() - 16, 8));
+	 
+	size_t bytes = (bits.substr(1).length()+7) / 8;
+	size_t extraBits = bits.substr(1).length() % 8;
+
+	if (*packetLen < bytes)
+		return false;
+
+	string reverseBits = reverse(bits.substr(1));
+	while (reverseBits.length() % 8)
+		reverseBits += '0';
+
+	uint8_t tmpPacket[30];
+	for (int i = 0; i < bytes; i++)
+	{
+		packet[bytes-1-i] = bits2long(reverseBits.substr(i * 8, min(8, reverseBits.length() - i * 8)));
+	}
+
+	unsigned char packetCrc = crc8(packet, bytes);
+	*packetLen = bytes;
+
+	return packetCrc==0;
+
+	unsigned char fmt = (unsigned char)bits2long(reverse(bits.substr(bits.length() - 16, 8)));
 	*packetLen = 0;
 	packet[0] = getByte(bits, 1, 5) << 3;
 	size_t len = bits.length();
@@ -76,11 +98,17 @@ bool CRFProtocolNooLite::bits2packet(const string& bits, uint8_t *packet, size_t
 		*packetLen = 5;
 		break;
 
+	case 7: //?
+ 		if (len != 74)
+			return false;
+		*packetLen = 9;
+		break;
+
 	default:
 		return false;
 	}
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < *packetLen-1; i++)
 	{
 		packet[*packetLen-i-1] = getByte(bits, len - 8*(i+1));
 	}
@@ -112,16 +140,16 @@ string CRFProtocolNooLite::DecodePacket(const string& raw)
 			uint8_t packet[20];
 			size_t packetLen = sizeof(packet);
 
-			if (!bits2packet(res, packet, &packetLen))
-				continue;
-
+			if (bits2packet(res, packet, &packetLen))
+				return res;
+			/*  TODO
 			unsigned char packetCrc = crc8(packet, packetLen);
 			// check crc;
 
 			if (!packetCrc)
 			{
 				return res;
-			}
+			}*/
 		}
 	}
 
@@ -137,9 +165,25 @@ string CRFProtocolNooLite::DecodeData(const string& bits) // Преобразование бит 
 	if (!bits2packet(bits, packet, &packetLen))
 		return bits;
 	
-	packet[0] >>= 3;
-	char buffer[100];
-	snprintf(buffer, sizeof(buffer), "cmd=%02x,addr=%04x,fmt=%02x,crc=%02x", (unsigned char)packet[0], (unsigned short)((packet[2] << 8) + packet[1]), (unsigned char)packet[3], (unsigned char)packet[4]);
+	if (packetLen < 5)
+		return bits;
+
+	char buffer[100]="error";
+	uint8_t fmt = packet[packetLen - 2];
+	switch (fmt)
+	{
+	case 0:
+		snprintf(buffer, sizeof(buffer), "cmd=%02x,addr=%04x,fmt=%02x,crc=%02x", (uint8_t)(packet[0]>>3), (uint16_t)((packet[2] << 8) + packet[1]), (uint8_t)packet[3], (uint8_t)packet[4]);
+		break;
+
+	case 7: //?
+		snprintf(buffer, sizeof(buffer), "cmd=%02x,b1=%02x,b2=%02x,b3=%02x,b4=%02x,b5=%02x,addr=%04x,fmt=%02x,crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], (uint8_t)packet[2], (uint8_t)packet[3], (uint8_t)packet[4], (uint8_t)packet[5], (uint16_t)((packet[7] << 8) + packet[6]), (uint8_t)packet[8], (uint8_t)packet[9]);
+		break;
+
+	default:
+		snprintf(buffer, sizeof(buffer), "len=%d,addr=%04x,fmt=%02x,crc=%02x", packetLen, (uint16_t)((packet[packetLen - 3] << 8) + packet[packetLen - 4]), (uint8_t)fmt, (uint8_t)packet[packetLen - 1]);
+	}
+
 	return buffer;
 }  
 
