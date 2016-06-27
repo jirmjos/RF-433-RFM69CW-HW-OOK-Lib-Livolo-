@@ -3,7 +3,7 @@
 
 static range_type g_timing_pause[7] =
 {
-	{ 1800, 2200 },
+	{ 1800, 2300 },
 	{ 380, 750 },
 	{ 851, 1400 },
 	{ 2500, 2700 },
@@ -12,9 +12,9 @@ static range_type g_timing_pause[7] =
 
 static range_type g_timing_pulse[8] =
 {
-	{ 1800, 2200 },
-	{ 200, 615 },
-	{ 815, 1100 },
+	{ 1800, 2300 },
+	{ 200, 650 },
+	{ 700, 1100 },
 	{ 2500, 2700 },
 	{ 0,0 }
 };   // TODO FIXIT 500us, 1000us
@@ -23,7 +23,7 @@ static range_type g_timing_pulse[8] =
 CRFProtocolNooLite::CRFProtocolNooLite()
 	:CRFProtocol(g_timing_pause, g_timing_pulse, 0, 1, "bBbBbBbBbBbBbBbBbBbBbBa")
 {
-
+	m_Debug = true;
 }
 
 
@@ -35,7 +35,7 @@ CRFProtocolNooLite::~CRFProtocolNooLite()
 // The 1-Wire CRC scheme is described in Maxim Application Note 27:
 // "Understanding and Using Cyclic Redundancy Checks with Maxim iButton Products"
 
-uint8_t crc8(uint8_t *addr, uint8_t len)
+uint8_t CRFProtocolNooLite::crc8(uint8_t *addr, uint8_t len)
 {
 	uint8_t crc = 0;
 

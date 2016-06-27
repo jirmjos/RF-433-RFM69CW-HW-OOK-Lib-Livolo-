@@ -5,6 +5,7 @@ class RFLIB_API CRFProtocolNooLite :
 { 
 	unsigned char getByte(const string &bits, size_t first, size_t len=8);
 	bool bits2packet(const string& bits, uint8_t *packet, size_t *packetLen);
+	uint8_t crc8(uint8_t *addr, uint8_t len);
 
 public:
 	CRFProtocolNooLite();
