@@ -135,7 +135,7 @@ string CRFProtocolNooLite::DecodeData(const string& bits) // Преобразование бит 
 	size_t packetLen = sizeof(packet);
 
 	if (!bits2packet(bits, packet, &packetLen))
-		return "";
+		return bits;
 	
 	packet[0] >>= 3;
 	char buffer[100];
