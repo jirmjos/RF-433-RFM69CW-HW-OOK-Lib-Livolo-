@@ -76,16 +76,19 @@ string CRFParser::Parse(base_type* data, size_t len)
 		m_Analyzer->Analyze(data, len);
 	}
 
-	for_each(CRFProtocolList, m_Protocols, i)
-	{
-		if ((*i)->needDumpPacket())
+
+	if (m_SavePath.length())
+	{ 
+		for_each(CRFProtocolList, m_Protocols, i)
 		{
-			m_Log->Printf(3, "Dump packet for %s", (*i)->getName().c_str());
-			SaveFile(data, len);
-			return "";
+			if ((*i)->needDumpPacket())
+			{
+				m_Log->Printf(3, "Dump packet for %s", (*i)->getName().c_str());
+				SaveFile(data, len);
+				return "";
+			}
 		}
 	}
-	
 
 	return "";
 }
