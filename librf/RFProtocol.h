@@ -43,7 +43,7 @@ public:
 	virtual string getName() = 0;
 	bool needDumpPacket() {	return m_DumpPacket; };
 
-	unsigned long bits2long(const string&);
+	unsigned long bits2long(const string&); 
 	string reverse(const string&);
 	void setLog(CLog *log) { m_Log = log; };
 };

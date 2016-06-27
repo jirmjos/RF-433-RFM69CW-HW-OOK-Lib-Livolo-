@@ -1,8 +1,9 @@
 #pragma once
 //#include "../engine/StateJob.h"
+#include "libwb.h"
 #include "../libutils/strutils.h"
 
-struct CWBControl
+struct LIBWB_API CWBControl
 {
 	enum ControlType
 	{
@@ -38,7 +39,7 @@ struct CWBControl
 
 typedef map<string, CWBControl*> CControlMap;
 
-class CWBDevice
+class LIBWB_API CWBDevice
 {
 	string m_Name;
 	string m_Description;

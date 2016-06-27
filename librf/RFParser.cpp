@@ -7,6 +7,7 @@
 #include "RFProtocolRST.h"
 #include "RFProtocolRaex.h"
 #include "RFProtocolOregon.h"
+#include "RFProtocolNooLite.h"
 #include "RFAnalyzer.h"
 
 CRFParser::CRFParser(CLog *log, string SavePath)
@@ -37,6 +38,8 @@ void CRFParser::AddProtocol(string protocol)
 		AddProtocol(new CRFProtocolLivolo());
 	else if (protocol == "Oregon")
 		AddProtocol(new CRFProtocolOregon());
+	else if (protocol == "nooLite")
+		AddProtocol(new CRFProtocolNooLite());
 	else if (protocol == "All")
 	{
 		AddProtocol(new CRFProtocolX10());
@@ -44,6 +47,7 @@ void CRFParser::AddProtocol(string protocol)
 		AddProtocol(new CRFProtocolRaex());
 		AddProtocol(new CRFProtocolLivolo());
 		AddProtocol(new CRFProtocolOregon());
+		AddProtocol(new CRFProtocolNooLite());
 	}
 	else
 		throw CHaException(CHaException::ErrBadParam, protocol);
