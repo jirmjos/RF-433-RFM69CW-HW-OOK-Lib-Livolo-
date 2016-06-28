@@ -167,7 +167,7 @@ string CRFProtocolNooLite::DecodeData(const string& bits) // Преобразование бит 
 	if (packetLen < 5)
 		return bits;
 
-	char buffer[100]="error";
+	char buffer[100]="";
 	uint8_t fmt = packet[packetLen - 2];
 	switch (fmt)
 	{
@@ -175,13 +175,13 @@ string CRFProtocolNooLite::DecodeData(const string& bits) // Преобразование бит 
 		{
 			bool sync = (packet[0] & 8) != 0;
 			uint8_t cmd =packet[0] >> 4;
-			snprintf(buffer, sizeof(buffer), "sync=%d,cmd=%d,addr=%04x,fmt=%02x,crc=%02x", sync, cmd, (uint16_t)((packet[2] << 8) + packet[1]), (uint8_t)packet[3], (uint8_t)packet[4]);
+			snprintf(buffer, sizeof(buffer), "sync=%d cmd=%d addr=%04x fmt=%02x crc=%02x", sync, cmd, (uint16_t)((packet[2] << 8) + packet[1]), (uint8_t)packet[3], (uint8_t)packet[4]);
 			break;
 		}
 	case 1:
 		{
 			uint8_t type = packet[3];
-			snprintf(buffer, sizeof(buffer), "cmd=%02x,b0=%02x,type=%d,addr=%04x,fmt=%02x,crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1],
+			snprintf(buffer, sizeof(buffer), "cmd=%02x b0=%02x type=%d addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1],
 				type, 
 				(uint16_t)((packet[packetLen - 3] << 8) + packet[packetLen - 4]), (uint8_t)fmt, (uint8_t)packet[packetLen - 1]);
 		}
@@ -196,20 +196,19 @@ string CRFProtocolNooLite::DecodeData(const string& bits) // Преобразование бит 
 			int h = packet[4];
 			int s3 = packet[5];
 			bool bat = (packet[3] & 0x80) != 0;
-			snprintf(buffer, sizeof(buffer), "cmd=%02x,b0=%d,type=%d,t=%.1f,h=%02x,s3=%02x,bat=%d,addr=%04x,fmt=%02x,crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], 
+			snprintf(buffer, sizeof(buffer), "cmd=%02x b0=%d type=%d t=%.1f h=%02x s3=%02x bat=%d addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], 
 				type, t, h, s3, bat,
 				(uint16_t)((packet[packetLen - 3] << 8) + packet[packetLen - 4]), (uint8_t)fmt, (uint8_t)packet[packetLen - 1]);
 		}
 		else
 		{
-			snprintf(buffer, sizeof(buffer), "cmd=%02x,b1=%02x,b2=%02x,b3=%02x,b4=%02x,b5=%02x,addr=%04x,fmt=%02x,crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], (uint8_t)packet[2], (uint8_t)packet[3], (uint8_t)packet[4], (uint8_t)packet[5], (uint16_t)((packet[7] << 8) + packet[6]), (uint8_t)packet[8], (uint8_t)packet[9]);
+			snprintf(buffer, sizeof(buffer), "cmd=%02x b1=%02x b2=%02x b3=%02x b4=%02x b5=%02x addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], (uint8_t)packet[2], (uint8_t)packet[3], (uint8_t)packet[4], (uint8_t)packet[5], (uint16_t)((packet[7] << 8) + packet[6]), (uint8_t)packet[8], (uint8_t)packet[9]);
 		}
 		break;
 
 	default: 
-		m_Log->Printf(3, "len=%d,addr=%04x,fmt=%02x,crc=%02x", packetLen, (uint16_t)((packet[packetLen - 3] << 8) + packet[packetLen - 4]), (uint8_t)fmt, (uint8_t)packet[packetLen - 1]);
+		m_Log->Printf(3, "len=%d addr=%04x fmt=%02x crc=%02x", packetLen, (uint16_t)((packet[packetLen - 3] << 8) + packet[packetLen - 4]), (uint8_t)fmt, (uint8_t)packet[packetLen - 1]);
 		m_Log->PrintBuffer(3, packet, packetLen);
-		*buffer = 0;
 	}
 
 	return buffer;
