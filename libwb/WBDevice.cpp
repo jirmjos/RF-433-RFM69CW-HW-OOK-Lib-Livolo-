@@ -104,6 +104,27 @@ void CWBDevice::set(string Name, float Value)
 	i->second->Changed = true;
 }
 
+
+float CWBDevice::getF(string Name)
+{
+	CControlMap::iterator i = m_Controls.find(Name);
+
+	if (i == m_Controls.end())
+		throw CHaException(CHaException::ErrBadParam, Name);
+
+	return i->second->fValue;
+}
+
+string CWBDevice::getS(string Name)
+{
+	CControlMap::iterator i = m_Controls.find(Name);
+
+	if (i == m_Controls.end())
+		throw CHaException(CHaException::ErrBadParam, Name);
+
+	return i->second->sValue;
+}
+
 void CWBDevice::CreateDeviceValues(string_map &v)
 {
 	string base = "/devices/" + m_Name;
