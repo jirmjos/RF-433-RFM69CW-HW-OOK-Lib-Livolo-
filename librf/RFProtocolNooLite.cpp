@@ -196,7 +196,7 @@ string CRFProtocolNooLite::DecodeData(const string& bits) // Преобразование бит 
 			int h = packet[4];
 			int s3 = packet[5];
 			bool bat = (packet[3] & 0x80) != 0;
-			snprintf(buffer, sizeof(buffer), "cmd=%02x b0=%d type=%d t=%.1f h=%02x s3=%02x bat=%d addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], 
+			snprintf(buffer, sizeof(buffer), "cmd=%02x b0=%d type=%d t=%.1f h=%d s3=%02x bat=%d addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], 
 				type, t, h, s3, bat,
 				(uint16_t)((packet[packetLen - 3] << 8) + packet[packetLen - 4]), (uint8_t)fmt, (uint8_t)packet[packetLen - 1]);
 		}
