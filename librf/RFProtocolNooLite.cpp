@@ -191,8 +191,9 @@ string CRFProtocolNooLite::DecodeData(const string& bits) // Преобразование бит 
 		break;
 
 	default: 
+		m_Log->Printf(3, "len=%d,addr=%04x,fmt=%02x,crc=%02x", packetLen, (uint16_t)((packet[packetLen - 3] << 8) + packet[packetLen - 4]), (uint8_t)fmt, (uint8_t)packet[packetLen - 1]);
 		m_Log->PrintBuffer(3, packet, packetLen);
-		snprintf(buffer, sizeof(buffer), "len=%d,addr=%04x,fmt=%02x,crc=%02x", packetLen, (uint16_t)((packet[packetLen - 3] << 8) + packet[packetLen - 4]), (uint8_t)fmt, (uint8_t)packet[packetLen - 1]);
+		*buffer = 0;
 	}
 
 	return buffer;
