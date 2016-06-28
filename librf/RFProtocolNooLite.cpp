@@ -177,7 +177,17 @@ string CRFProtocolNooLite::DecodeData(const string& bits) // Преобразование бит 
 		break;
 
 	case 7: //?
-		snprintf(buffer, sizeof(buffer), "cmd=%02x,b1=%02x,b2=%02x,b3=%02x,b4=%02x,b5=%02x,addr=%04x,fmt=%02x,crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], (uint8_t)packet[2], (uint8_t)packet[3], (uint8_t)packet[4], (uint8_t)packet[5], (uint16_t)((packet[7] << 8) + packet[6]), (uint8_t)packet[8], (uint8_t)packet[9]);
+	{
+		uint8_t type = (packet[3] >> 4) & 7;
+		int t0 = ((packet[3] & 0x7) << 8) | packet[2];
+		float t = 0.1*((packet[3]&8)?4096-t0:t0);
+		int h = packet[4];
+		int s3 = packet[5];
+		snprintf(buffer, sizeof(buffer), "cmd=%02x,b0=%02x,type=%d,t=%.1f,h=%02x,s3=%02x,addr=%04x,fmt=%02x,crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], 
+			type, t, h, s3,
+			(uint16_t)((packet[7] << 8) + packet[6]), (uint8_t)packet[8], (uint8_t)packet[9]);
+	}
+//		snprintf(buffer, sizeof(buffer), "cmd=%02x,b1=%02x,b2=%02x,b3=%02x,b4=%02x,b5=%02x,addr=%04x,fmt=%02x,crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], (uint8_t)packet[2], (uint8_t)packet[3], (uint8_t)packet[4], (uint8_t)packet[5], (uint16_t)((packet[7] << 8) + packet[6]), (uint8_t)packet[8], (uint8_t)packet[9]);
 		break;
 
 	default:
