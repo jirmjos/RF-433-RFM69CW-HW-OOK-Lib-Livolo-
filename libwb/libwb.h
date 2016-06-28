@@ -1,3 +1,4 @@
+#pragma once
 // The following ifdef block is the standard way of creating macros which make exporting 
 // from a DLL simpler. All files within this DLL are compiled with the RFLIB_EXPORTS
 // symbol defined on the command line. This symbol should not be defined on any project
@@ -7,16 +8,14 @@
 
 #ifdef WIN32
 
-#ifdef LIBRF_EXPORTS
-#define RFLIB_API __declspec(dllexport)
+#ifdef LIBWB_EXPORTS
+#define LIBWB_API __declspec(dllexport)
 #else
-#define RFLIB_API __declspec(dllimport)
+#define LIBWB_API __declspec(dllimport)
 #endif
 
-//#define _LIBUTILS_USE_XML_MSXML
-
 #else
-#define RFLIB_API 
+#define LIBWB_API 
 #endif
 
 

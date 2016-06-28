@@ -7,6 +7,7 @@
 #include "RFProtocolRST.h"
 #include "RFProtocolRaex.h"
 #include "RFProtocolOregon.h"
+#include "RFProtocolNooLite.h"
 #include "RFAnalyzer.h"
 
 CRFParser::CRFParser(CLog *log, string SavePath)
@@ -37,6 +38,8 @@ void CRFParser::AddProtocol(string protocol)
 		AddProtocol(new CRFProtocolLivolo());
 	else if (protocol == "Oregon")
 		AddProtocol(new CRFProtocolOregon());
+	else if (protocol == "nooLite")
+		AddProtocol(new CRFProtocolNooLite());
 	else if (protocol == "All")
 	{
 		AddProtocol(new CRFProtocolX10());
@@ -44,6 +47,7 @@ void CRFParser::AddProtocol(string protocol)
 		AddProtocol(new CRFProtocolRaex());
 		AddProtocol(new CRFProtocolLivolo());
 		AddProtocol(new CRFProtocolOregon());
+		AddProtocol(new CRFProtocolNooLite());
 	}
 	else
 		throw CHaException(CHaException::ErrBadParam, protocol);
@@ -72,16 +76,19 @@ string CRFParser::Parse(base_type* data, size_t len)
 		m_Analyzer->Analyze(data, len);
 	}
 
-	for_each(CRFProtocolList, m_Protocols, i)
-	{
-		if ((*i)->needDumpPacket())
+
+	if (m_SavePath.length())
+	{ 
+		for_each(CRFProtocolList, m_Protocols, i)
 		{
-			m_Log->Printf(3, "Dump packet for %s", (*i)->getName().c_str());
-			SaveFile(data, len);
-			return "";
+			if ((*i)->needDumpPacket())
+			{
+				m_Log->Printf(3, "Dump packet for %s", (*i)->getName().c_str());
+				SaveFile(data, len);
+				return "";
+			}
 		}
 	}
-	
 
 	return "";
 }
