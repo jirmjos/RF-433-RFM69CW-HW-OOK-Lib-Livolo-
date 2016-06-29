@@ -43,10 +43,14 @@ typedef unsigned int uint32_t;
 #define RF69OOK_MODE_SYNTH       2 // PLL ON
 #define RF69OOK_MODE_RX          3 // RX MODE
 #define RF69OOK_MODE_TX          4 // TX MODE
+#define RF69OOK_CSMA_LIMIT_MS 1000
+#define RF69OOK_MAX_DATA_LEN       61 // to take advantage of the built in AES/CRC we want to limit the frame size to the internal FIFO size (66 bytes - 3 bytes overhead - 2 bytes crc)
 
 #define null                  0
 #define COURSE_TEMP_COEF    -90 // puts the temperature reading in the ballpark, user can fine tune the returned value
 #define RF69OOK_FSTEP 61.03515625 // == FXOSC/2^19 = 32mhz/2^19 (p13 in DS)
+#define CSMA_LIMIT              -90 // upper RX signal sensitivity threshold in dBm for carrier sense access
+
 
 class SPI;
 
@@ -54,6 +58,8 @@ class RFM69OOK {
   public:
     static volatile int RSSI; //most accurate RSSI during reception (closest to the reception)
     static volatile byte _mode; //should be protected?
+    static volatile uint8_t PAYLOADLEN;
+
 /*
     RFM69OOK(byte slaveSelectPin=RF69OOK_SPI_CS, byte interruptPin=RF69OOK_IRQ_PIN, bool isRFM69HW=false, byte interruptNum=RF69OOK_IRQ_NUM) {
       _slaveSelectPin = slaveSelectPin;
@@ -89,7 +95,7 @@ class RFM69OOK {
     void transmitBegin();
     void transmitEnd();
     bool poll();
-    void send(bool signal);
+    void send(const void* buffer, uint8_t size);
     void attachUserInterrupt(void (*function)());
 	void setBandwidth(uint8_t bw);
 	void setRSSIThreshold(int8_t rssi);
@@ -113,6 +119,9 @@ class RFM69OOK {
     void setHighPowerRegs(bool onOff);
     void select();
     void unselect();
+    bool canSend();
+    void sendFrame(const void* buffer, uint8_t size);
+    bool receiveDone();
 
     // functions related to OOK mode
     void (*userInterrupt)();

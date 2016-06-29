@@ -30,13 +30,22 @@
 // **********************************************************************************
 
 #include "stdafx.h"
+#include <unistd.h>
+#include <time.h>
+#include <sys/time.h>
+#ifdef __MACH__
+# include <mach/clock.h>
+# include <mach/mach.h>
+#endif
+#include "../libs/libutils/Thread.h"
 #include "spidev_lib++.h"
-#include <RFM69OOK.h>
-#include <RFM69OOKregisters.h>
+#include "RFM69OOK.h"
+#include "RFM69OOKregisters.h"
 
 volatile byte RFM69OOK::_mode;  // current transceiver state
 volatile int RFM69OOK::RSSI; 	// most accurate RSSI during reception (closest to the reception)
 RFM69OOK* RFM69OOK::selfPointer;
+volatile uint8_t RFM69OOK::PAYLOADLEN;
 
 RFM69OOK::RFM69OOK(SPI* spi)
   :m_spi(spi)
@@ -131,16 +140,88 @@ bool RFM69OOK::poll()
   return false;
 //  return digitalRead(_interruptPin);
 }
+*/
 
-// Send a 1 or 0 signal in OOK mode
-void RFM69OOK::send(bool signal)
+unsigned long millis(void)
 {
-  //digitalWrite(_interruptPin, signal);
+  struct timespec ts;
+
+#ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
+  clock_serv_t cclock;
+  mach_timespec_t mts;
+  host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+  clock_get_time(cclock, &mts);
+  mach_port_deallocate(mach_task_self(), cclock);
+  ts.tv_sec = mts.tv_sec;
+  ts.tv_nsec = mts.tv_nsec;
+
+#else
+  clock_gettime(CLOCK_REALTIME, &ts);
+#endif
+    return ( ts.tv_sec * 1000 + ts.tv_nsec / 1000000L );
 }
+
+
+
+void RFM69OOK::send(const void* buffer, uint8_t size)
+{
+  writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFB) | RF_PACKET2_RXRESTART); // avoid RX deadlocks
+  uint32_t now = millis();
+  while (!canSend() && millis() - now < RF69OOK_CSMA_LIMIT_MS) receiveDone();
+  sendFrame(buffer, size);
+}
+
+// internal function
+
+void RFM69OOK::sendFrame(const void* buffer, uint8_t bufferSize)
+{
+ setMode(RF69OOK_MODE_STANDBY); // turn off receiver to prevent reception while filling fifo
+  while ((readReg(REG_IRQFLAGS1) & RF_IRQFLAGS1_MODEREADY) == 0x00); // wait for ModeReady
+  writeReg(REG_DIOMAPPING1, RF_DIOMAPPING1_DIO0_00); // DIO0 is "Packet Sent"
+  if (bufferSize > RF69OOK_MAX_DATA_LEN) bufferSize = RF69OOK_MAX_DATA_LEN;
+
+  // control byte
+  uint8_t CTLbyte = 0x00;
+
+
+  // write to FIFO
+  select();
+
+  unsigned char data[RF69OOK_MAX_DATA_LEN+2], tmp[RF69OOK_MAX_DATA_LEN+2];
+  data[0] = REG_FIFO | 0x80;
+  data[1] = bufferSize;
+  for (uint8_t i = 0; i < bufferSize; i++)
+    data[i+2] = ((unsigned char*)buffer)[i];
+
+  int res = m_spi->xfer2(data, bufferSize+2, tmp, 0);
+
+  unselect();
+
+  // no need to wait for transmit mode to be ready since its handled by the radio
+  setMode(RF69OOK_MODE_TX);
+  uint32_t txStart = millis();
+  Sleep(1000);
+  // TODO while (digitalRead(_interruptPin) == 0 && millis() - txStart < RF69_TX_LIMIT_MS); // wait for DIO0 to turn HIGH signalling transmission finish
+  //while (readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PACKETSENT == 0x00); // wait for ModeReady
+  setMode(RF69OOK_MODE_STANDBY);
+
+}
+
+bool RFM69OOK::canSend()
+{
+  if (_mode == RF69OOK_MODE_RX && PAYLOADLEN == 0 && readRSSI() < CSMA_LIMIT) // if signal stronger than -100dBm is detected assume channel activity
+  {
+    setMode(RF69OOK_MODE_STANDBY);
+    return true;
+  }
+  return false;
+}
+
 
 // Turn the radio into transmission mode
 void RFM69OOK::transmitBegin()
 {
+  // TODO Disable RF_DATAMODUL_DATAMODE_CONTINUOUSNOBSYNC
   setMode(RF69OOK_MODE_TX);
  // detachInterrupt(_interruptNum); // not needed in TX mode
  // pinMode(_interruptPin, OUTPUT);
@@ -149,13 +230,14 @@ void RFM69OOK::transmitBegin()
 // Turn the radio back to standby
 void RFM69OOK::transmitEnd()
 {
-  pinMode(_interruptPin, INPUT);
+//  pinMode(_interruptPin, INPUT);
   setMode(RF69OOK_MODE_STANDBY);
 }
-*/
+
 // Turn the radio into OOK listening mode
 void RFM69OOK::receiveBegin()
 {
+  // TODO Enable RF_DATAMODUL_DATAMODE_CONTINUOUSNOBSYNC
   //pinMode(_interruptPin, INPUT);
   //attachInterrupt(_interruptNum, RFM69OOK::isr0, CHANGE); // generate interrupts in RX mode
   setMode(RF69OOK_MODE_RX);
@@ -383,4 +465,22 @@ void RFM69OOK::rcCalibration()
 {
   writeReg(REG_OSC1, RF_OSC1_RCCAL_START);
   while ((readReg(REG_OSC1) & RF_OSC1_RCCAL_DONE) == 0x00);
+}
+
+// checks if a packet was received and/or puts transceiver in receive (ie RX or listen) mode
+bool RFM69OOK::receiveDone() {
+//ATOMIC_BLOCK(ATOMIC_FORCEON)
+//{
+  if (_mode == RF69OOK_MODE_RX && PAYLOADLEN > 0)
+  {
+    setMode(RF69OOK_MODE_STANDBY); // enables interrupts
+    return true;
+  }
+  else if (_mode == RF69OOK_MODE_RX) // already in RX no payload yet
+  {
+    return false;
+  }
+  receiveBegin();
+  return false;
+//}
 }
