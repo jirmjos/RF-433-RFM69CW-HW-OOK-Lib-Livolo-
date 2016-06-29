@@ -175,7 +175,7 @@ string CRFProtocolNooLite::DecodeData(const string& bits) // Преобразование бит 
 		{
 			bool sync = (packet[0] & 8) != 0;
 			uint8_t cmd =packet[0] >> 4;
-			snprintf(buffer, sizeof(buffer), "sync=%d cmd=%d addr=%04x fmt=%02x crc=%02x", sync, cmd, (uint16_t)((packet[2] << 8) + packet[1]), (uint8_t)packet[3], (uint8_t)packet[4]);
+			snprintf(buffer, sizeof(buffer), "flip=%d cmd=%d addr=%04x fmt=%02x crc=%02x", sync, cmd, (uint16_t)((packet[2] << 8) + packet[1]), (uint8_t)packet[3], (uint8_t)packet[4]);
 			break;
 		}
 	case 1:
@@ -198,17 +198,17 @@ string CRFProtocolNooLite::DecodeData(const string& bits) // Преобразование бит 
 			bool bat = (packet[3] & 0x80) != 0;
 			if (type==2)
 			{
-				snprintf(buffer, sizeof(buffer), "sync=%02x cmd=%d type=%d t=%.1f h=%d s3=%02x bat=%d addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], 
+				snprintf(buffer, sizeof(buffer), "flip=%02x cmd=%d type=%d t=%.1f h=%d s3=%02x bat=%d addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], 
 					type, t, h, s3, bat,
 					(uint16_t)((packet[packetLen - 3] << 8) + packet[packetLen - 4]), (uint8_t)fmt, (uint8_t)packet[packetLen - 1]);
 			} else if (type==3)
 			{
-				snprintf(buffer, sizeof(buffer), "sync=%02x cmd=%d type=%d t=%.1f s3=%02x bat=%d addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], 
+				snprintf(buffer, sizeof(buffer), "flip=%02x cmd=%d type=%d t=%.1f s3=%02x bat=%d addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], 
 					type, t, s3, bat,
 					(uint16_t)((packet[packetLen - 3] << 8) + packet[packetLen - 4]), (uint8_t)fmt, (uint8_t)packet[packetLen - 1]);
 			} else
 			{
-				snprintf(buffer, sizeof(buffer), "sync=%02x cmd=%02x type=%02x b3=%02x b4=%02x b5=%02x addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], (uint8_t)packet[2], (uint8_t)packet[3], (uint8_t)packet[4], (uint8_t)packet[5], (uint16_t)((packet[7] << 8) + packet[6]), (uint8_t)packet[8], (uint8_t)packet[9]);
+				snprintf(buffer, sizeof(buffer), "flip=%02x cmd=%02x type=%02x b3=%02x b4=%02x b5=%02x addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], (uint8_t)packet[2], (uint8_t)packet[3], (uint8_t)packet[4], (uint8_t)packet[5], (uint16_t)((packet[7] << 8) + packet[6]), (uint8_t)packet[8], (uint8_t)packet[9]);
 			}
 
 		}
