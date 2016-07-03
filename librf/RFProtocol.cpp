@@ -21,6 +21,13 @@ string c2s(char c)
 	return tmp;
 }
 
+void CRFProtocol::SetSendTiming(const uint16_t *timings)
+{
+	m_SendTimingPauses = m_SendTimingPulses = timings;
+	while (*m_SendTimingPulses++);
+}
+
+
 string CRFProtocol::Parse(base_type* data, size_t dataLen)
 {
 	Clean();
@@ -45,13 +52,15 @@ string CRFProtocol::Parse(base_type* data, size_t dataLen)
 	return "";
 }
  
+/*
 string CRFProtocol::tryDecode(string data)
 {
 	if (data.length() >= m_Bits)
 		return getName() + ":" + data;
 	else
 		return "";
-}
+}*/
+
 
 
 string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
@@ -302,8 +311,88 @@ string CRFProtocol::ManchesterDecode(const string&raw, bool expectPulse, char sh
 	return res;
 }
 
+string replaceDouble(const string &src, char search, char replace)
+{
+	string res = src;
+	char tmp[3];
+	tmp[0] = tmp[1] = search;
+	tmp[2] = 0;
+	char tmp2[2];
+	tmp2[0] = replace;
+	tmp2[1] = 0;
+
+	size_t pos;
+	while ((pos = res.find(tmp)) != string::npos)
+	{
+		res = res.replace(pos, 2, tmp2);
+	}
+
+	return res;
+}
+
+string CRFProtocol::ManchesterEncode(const string&bits, bool invert, char shortPause, char longPause, char shortPulse, char longPulse)
+{
+	string res;
+	for_each_const(string, bits, i)
+	{
+		bool bit = *i == '1';
+
+		if (bit ^ invert)
+		{
+			res += "Aa";
+			//lastPulse = false;
+		}
+		else
+		{
+			res += "aA";
+			//lastPulse = true;
+		}
+
+	}
+	
+	res = replaceDouble(res, shortPause, longPause);
+	res = replaceDouble(res, shortPulse, longPulse);
+
+	return res;
+}
+
 
 bool CRFProtocol::needDump(const string &rawData)
 {
 	return false;
+}
+
+
+void CRFProtocol::EncodeData(const string &data, uint16_t bitrate, uint8_t *buffer, size_t &bufferSize)
+{
+	EncodePacket(data, bitrate, buffer, bufferSize);
+}
+
+void CRFProtocol::EncodePacket(const string &data, uint16_t bitrate, uint8_t *buffer, size_t &bufferSize)
+{
+	string timings = EncodePacket(data);
+	uint16_t bitLen = 1000000L / bitrate;
+	memset(buffer, 0, bufferSize);
+
+	size_t bitNum = 0;
+	for_each (string, timings, i)
+	{
+		bool pulse = *i < 'a';
+		uint16_t len = pulse ? m_SendTimingPulses[*i - 'A'] : m_SendTimingPulses[*i - 'a'];
+		uint16_t bits = len / bitLen; // TODO Округление для некратного битрейта?
+
+		for (int j = 0; j < bits; j++)
+		{
+			if (pulse)
+				buffer[bitNum >> 3] |= (1 << (bitNum & 7));
+
+			bitNum++;
+		}
+	}
+}
+
+
+string CRFProtocol::EncodePacket(const string &bits)
+{
+	return "";
 }

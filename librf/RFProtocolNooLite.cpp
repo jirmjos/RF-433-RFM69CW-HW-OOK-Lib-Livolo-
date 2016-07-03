@@ -3,18 +3,18 @@
 
 static const range_type g_timing_pause[7] =
 {
-	{ 1800, 2300 },
 	{ 380, 750 },
 	{ 851, 1400 },
+	{ 1800, 2300 },
 	{ 2500, 2700 },
 	{ 0,0 }
 };  // TODO FIXIT 500us, 1000us
 
 static const range_type g_timing_pulse[8] =
 {
-	{ 1800, 2300 },
 	{ 200, 650 },
 	{ 700, 1100 },
+	{ 1800, 2300 },
 	{ 2500, 2700 },
 	{ 0,0 }
 };   // TODO FIXIT 500us, 1000us
@@ -26,9 +26,18 @@ static const uint16_t g_transmit_data[]=
 };
 
 CRFProtocolNooLite::CRFProtocolNooLite()
-	:CRFProtocol(g_timing_pause, g_timing_pulse, 0, 1, "bBbBbBbBbBbBbBbBbBbBbBa")
+	:CRFProtocol(g_timing_pause, g_timing_pulse, 0, 1, "aAaAaAaAaAaAaAaAaAaAaAc")
 {
-	m_Debug = true;
+	m_Debug = false;
+	SetSendTiming(g_transmit_data);
+
+
+	string tmp;
+	tmp = ManchesterEncode("11111", true, 'a', 'b', 'A', 'B');
+	tmp = ManchesterEncode("00000", true, 'a', 'b', 'A', 'B');
+	tmp = ManchesterEncode("111000", true, 'a', 'b', 'A', 'B');
+	tmp = ManchesterEncode("10101010", true, 'a', 'b', 'A', 'B');
+
 }
 
 
@@ -130,17 +139,20 @@ string CRFProtocolNooLite::DecodePacket(const string& raw)
 	SplitString(raw, 'd', v);
 
 	if (v.size()==1)
-		SplitString(raw, 'a', v);   // TODO CheckIT
+		SplitString(raw, 'c', v);   // TODO CheckIT
 
 	string res;
 
 	for_each(string_vector, v, i)
 	{
-		res = ManchesterDecode('b' + *i, false, 'b', 'c', 'B', 'C');
+		res = ManchesterDecode('a' + *i, false, 'a', 'b', 'A', 'B');
+		string tmp = EncodePacket(res);
+		uint8_t tmpBuffer[100];
+		size_t tmpBufferSize = sizeof(tmpBuffer);
+		EncodeData(res, 2000, tmpBuffer, tmpBufferSize);
 
 		if (res.length() >=37)
 		{
-			
 			uint8_t packet[20];
 			size_t packetLen = sizeof(packet);
 
@@ -156,7 +168,6 @@ string CRFProtocolNooLite::DecodePacket(const string& raw)
 			}*/
 		}
 	}
-
 
 	return "";
 }
@@ -203,17 +214,17 @@ string CRFProtocolNooLite::DecodeData(const string& bits) // Преобразование бит 
 			bool bat = (packet[3] & 0x80) != 0;
 			if (type==2)
 			{
-				snprintf(buffer, sizeof(buffer), "flip=%02x cmd=%d type=%d t=%.1f h=%d s3=%02x bat=%d addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], 
+				snprintf(buffer, sizeof(buffer), "flip=%d cmd=%d type=%d t=%.1f h=%d s3=%02x bat=%d addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0]?1:0, (uint8_t)packet[1], 
 					type, t, h, s3, bat,
 					(uint16_t)((packet[packetLen - 3] << 8) + packet[packetLen - 4]), (uint8_t)fmt, (uint8_t)packet[packetLen - 1]);
 			} else if (type==3)
 			{
-				snprintf(buffer, sizeof(buffer), "flip=%02x cmd=%d type=%d t=%.1f s3=%02x bat=%d addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], 
+				snprintf(buffer, sizeof(buffer), "flip=%d cmd=%d type=%d t=%.1f s3=%02x bat=%d addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0] ? 1 : 0, (uint8_t)packet[1],
 					type, t, s3, bat,
 					(uint16_t)((packet[packetLen - 3] << 8) + packet[packetLen - 4]), (uint8_t)fmt, (uint8_t)packet[packetLen - 1]);
 			} else
 			{
-				snprintf(buffer, sizeof(buffer), "flip=%02x cmd=%02x type=%02x b3=%02x b4=%02x b5=%02x addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0], (uint8_t)packet[1], (uint8_t)packet[2], (uint8_t)packet[3], (uint8_t)packet[4], (uint8_t)packet[5], (uint16_t)((packet[7] << 8) + packet[6]), (uint8_t)packet[8], (uint8_t)packet[9]);
+				snprintf(buffer, sizeof(buffer), "flip=%d cmd=%02x type=%02x b3=%02x b4=%02x b5=%02x addr=%04x fmt=%02x crc=%02x", (uint8_t)packet[0] ? 1 : 0, (uint8_t)packet[1], (uint8_t)packet[2], (uint8_t)packet[3], (uint8_t)packet[4], (uint8_t)packet[5], (uint16_t)((packet[7] << 8) + packet[6]), (uint8_t)packet[8], (uint8_t)packet[9]);
 			}
 
 		}
@@ -235,3 +246,18 @@ bool CRFProtocolNooLite::needDump(const string &rawData)
 {
 	return rawData.find(m_PacketDelimeter) != rawData.npos;
 }
+
+
+string CRFProtocolNooLite::EncodePacket(const string &bits)
+{
+	string start;
+	for (int i = 0; i < 37; i++)
+	{
+		start += '1';
+	}
+
+	return ManchesterEncode(start, true, 'a', 'b', 'A', 'B')
+		+ 'b' + ManchesterEncode(bits, true, 'a', 'b', 'A', 'B')
+		+ 'b' + ManchesterEncode(bits, true, 'a', 'b', 'A', 'B');
+}
+

@@ -15,5 +15,10 @@ public:
 	virtual string DecodePacket(const string&);
 	virtual string DecodeData(const string&); // Преобразование бит в данные
 	virtual bool needDump(const string &rawData);
+	
+	// Кодирование
+	virtual string EncodePacket(const string &bits);
+
+
 };
 
