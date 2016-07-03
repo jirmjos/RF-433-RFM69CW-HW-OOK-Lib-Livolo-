@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "RFProtocolNooLite.h"
 
-static range_type g_timing_pause[7] =
+static const range_type g_timing_pause[7] =
 {
 	{ 1800, 2300 },
 	{ 380, 750 },
@@ -10,7 +10,7 @@ static range_type g_timing_pause[7] =
 	{ 0,0 }
 };  // TODO FIXIT 500us, 1000us
 
-static range_type g_timing_pulse[8] =
+static const range_type g_timing_pulse[8] =
 {
 	{ 1800, 2300 },
 	{ 200, 650 },
@@ -19,6 +19,11 @@ static range_type g_timing_pulse[8] =
 	{ 0,0 }
 };   // TODO FIXIT 500us, 1000us
 
+static const uint16_t g_transmit_data[]=
+{
+	500, 1000, 1500, 2000, 0,  // Pauses
+	500, 1000, 1500, 2000, 0   // Pulses
+};
 
 CRFProtocolNooLite::CRFProtocolNooLite()
 	:CRFProtocol(g_timing_pause, g_timing_pulse, 0, 1, "bBbBbBbBbBbBbBbBbBbBbBa")

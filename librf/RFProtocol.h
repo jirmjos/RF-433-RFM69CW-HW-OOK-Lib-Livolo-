@@ -8,7 +8,7 @@ typedef unsigned long base_type;
 #define PULSE_MASK      0x00FFFFFF
 
 typedef  base_type range_type[2];
-typedef  range_type *range_array_type;
+typedef  const range_type *range_array_type;
 string c2s(char c);
 
 class RFLIB_API CRFProtocol
