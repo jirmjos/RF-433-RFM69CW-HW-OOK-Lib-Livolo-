@@ -46,9 +46,9 @@ string CRFProtocol::Parse(base_type* data, size_t dataLen)
 	if (bits.length())
 	{
 		string res = getName() + ":" + DecodeData(bits);
-		uint8_t tmpBuffer[100];
-		size_t tmpBufferSize = sizeof(tmpBuffer);
-		EncodeData(res, 2000, tmpBuffer, tmpBufferSize);
+//		uint8_t tmpBuffer[100];
+//		size_t tmpBufferSize = sizeof(tmpBuffer);
+//		EncodeData(res, 2000, tmpBuffer, tmpBufferSize);
 		return res;
 	}
 

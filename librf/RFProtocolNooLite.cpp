@@ -234,8 +234,6 @@ string CRFProtocolNooLite::DecodeData(const string& bits) // Ïðåîáðàçî�
 		m_Log->PrintBuffer(3, packet, packetLen);
 	}
 
-	string tmp = data2bits(string("nooLite:")+buffer);
-
 	return buffer;
 }  
 
