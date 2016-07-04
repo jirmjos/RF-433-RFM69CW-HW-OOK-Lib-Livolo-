@@ -59,19 +59,7 @@ CRFProtocolNooLite::CRFProtocolNooLite()
 	:CRFProtocol(g_timing_pause, g_timing_pulse, 0, 1, "aAaAaAaAaAaAaAaAaAaAaAc")
 {
 	m_Debug = false;
-<<<<<<< HEAD
 	SetTransmitTiming(g_transmit_data);
-=======
-	SetSendTiming(g_transmit_data);
-
-
-	string tmp;
-	tmp = ManchesterEncode("11111", true, 'a', 'b', 'A', 'B');
-	tmp = ManchesterEncode("00000", true, 'a', 'b', 'A', 'B');
-	tmp = ManchesterEncode("111000", true, 'a', 'b', 'A', 'B');
-	tmp = ManchesterEncode("10101010", true, 'a', 'b', 'A', 'B');
-
->>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
 }
 
 
@@ -131,7 +119,7 @@ bool CRFProtocolNooLite::bits2packet(const string& bits, uint8_t *packet, size_t
 	*packetLen = bytes;
 
 	if (CRC)
-		*CRC = packetCrc;
+		*CRC = crc8(packet, (uint8_t)bytes-1);
 
 	return packetCrc==0;
 }
@@ -153,14 +141,10 @@ string CRFProtocolNooLite::DecodePacket(const string& raw)
 	for_each(string_vector, v, i)
 	{
 		res = ManchesterDecode('a' + *i, false, 'a', 'b', 'A', 'B');
-<<<<<<< HEAD
 		string tmp = bits2timings(res);
-=======
-		string tmp = EncodePacket(res);
->>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
 		uint8_t tmpBuffer[100];
 		size_t tmpBufferSize = sizeof(tmpBuffer);
-		EncodeData(res, 2000, tmpBuffer, tmpBufferSize);
+		EncodePacket(res, 2000, tmpBuffer, tmpBufferSize);
 
 		if (res.length() >=37)
 		{
@@ -250,6 +234,8 @@ string CRFProtocolNooLite::DecodeData(const string& bits) // Ïðåîáðàçî�
 		m_Log->PrintBuffer(3, packet, packetLen);
 	}
 
+	string tmp = data2bits(string("nooLite:")+buffer);
+
 	return buffer;
 }  
 
@@ -259,11 +245,7 @@ bool CRFProtocolNooLite::needDump(const string &rawData)
 }
 
 
-<<<<<<< HEAD
 string CRFProtocolNooLite::bits2timings(const string &bits)
-=======
-string CRFProtocolNooLite::EncodePacket(const string &bits)
->>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
 {
 	string start;
 	for (int i = 0; i < 37; i++)
@@ -271,22 +253,17 @@ string CRFProtocolNooLite::EncodePacket(const string &bits)
 		start += '1';
 	}
 
-<<<<<<< HEAD
-	return 'b'+ManchesterEncode(start, true, 'a', 'b', 'A', 'B')
-=======
-	return ManchesterEncode(start, true, 'a', 'b', 'A', 'B')
->>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
+	return 'A'+ManchesterEncode(start, true, 'a', 'b', 'A', 'B')
 		+ 'b' + ManchesterEncode(bits, true, 'a', 'b', 'A', 'B')
 		+ 'b' + ManchesterEncode(bits, true, 'a', 'b', 'A', 'B');
 }
 
-<<<<<<< HEAD
 string l2bits(uint16_t val, int bits)
 {
 	string res;
 	for (int i=0;i<bits;i++)
 	{
-		res = ((val&1)?'1':'0')+res;
+		res = res+((val&1)?'1':'0');
 		val>>=1;
 	}
 
@@ -328,7 +305,7 @@ string CRFProtocolNooLite::data2bits(const string &data)
 		case nlcmd_unbind:			//9 – запускает процедуру стирания адреса управляющего устройства из памяти исполнительного
 			if (fmt!=0)
 				throw CHaException(CHaException::ErrBadParam, "bad format: "+data);
-			res = l2bits(flip,1)+l2bits(cmd,4)+l2bits(addr,16)+l2bits(fmt,8), l2bits(0/*crc*/,8);
+			res = "1"+l2bits(flip,1)+l2bits(cmd,4)+l2bits(addr,16)+l2bits(fmt,8)+l2bits(0/*crc*/,8);
 			break;
 
 
@@ -352,11 +329,8 @@ string CRFProtocolNooLite::data2bits(const string &data)
 	size_t packetLen = sizeof(packet);
 	uint8_t crc;
 	bits2packet(res, packet, &packetLen, &crc);
-	res = res.substr(res.length()-8)+l2bits(crc,8);
+	res = res.substr(0, res.length()-8)+l2bits(crc,8);
 
-	return res;
+	return res; //???? remove first bit ?? TODO
 }
 
-
-=======
->>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
