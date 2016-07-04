@@ -21,7 +21,11 @@ string c2s(char c)
 	return tmp;
 }
 
+<<<<<<< HEAD
 void CRFProtocol::SetTransmitTiming(const uint16_t *timings)
+=======
+void CRFProtocol::SetSendTiming(const uint16_t *timings)
+>>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
 {
 	m_SendTimingPauses = m_SendTimingPulses = timings;
 	while (*m_SendTimingPulses++);
@@ -365,12 +369,21 @@ bool CRFProtocol::needDump(const string &rawData)
 
 void CRFProtocol::EncodeData(const string &data, uint16_t bitrate, uint8_t *buffer, size_t &bufferSize)
 {
+<<<<<<< HEAD
 	EncodePacket(data2bits(data), bitrate, buffer, bufferSize);
 }
 
 void CRFProtocol::EncodePacket(const string &bits, uint16_t bitrate, uint8_t *buffer, size_t &bufferSize)
 {
 	string timings = bits2timings(bits);
+=======
+	EncodePacket(data, bitrate, buffer, bufferSize);
+}
+
+void CRFProtocol::EncodePacket(const string &data, uint16_t bitrate, uint8_t *buffer, size_t &bufferSize)
+{
+	string timings = EncodePacket(data);
+>>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
 	uint16_t bitLen = 1000000L / bitrate;
 	memset(buffer, 0, bufferSize);
 
@@ -379,22 +392,37 @@ void CRFProtocol::EncodePacket(const string &bits, uint16_t bitrate, uint8_t *bu
 	{
 		bool pulse = *i < 'a';
 		uint16_t len = pulse ? m_SendTimingPulses[*i - 'A'] : m_SendTimingPulses[*i - 'a'];
+<<<<<<< HEAD
 		uint16_t bits = len / bitLen; // TODO ÐžÐºÑ€ÑƒÐ³Ð»ÐµÐ½Ð¸Ðµ Ð´Ð»Ñ Ð½ÐµÐºÑ€Ð°Ñ‚Ð½Ð¾Ð³Ð¾ Ð±Ð¸Ñ‚Ñ€ÐµÐ¹Ñ‚Ð°?
+=======
+		uint16_t bits = len / bitLen; // TODO Îêðóãëåíèå äëÿ íåêðàòíîãî áèòðåéòà?
+>>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
 
 		for (int j = 0; j < bits; j++)
 		{
 			if (pulse)
+<<<<<<< HEAD
 				buffer[bitNum >> 3] |= (1 << (7-(bitNum & 7)));
+=======
+				buffer[bitNum >> 3] |= (1 << (bitNum & 7));
+>>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
 
 			bitNum++;
 		}
 	}
+<<<<<<< HEAD
 
 	bufferSize = (bitNum+7)>>3;
 }
 
 
 string CRFProtocol::bits2timings(const string &bits)
+=======
+}
+
+
+string CRFProtocol::EncodePacket(const string &bits)
+>>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
 {
 	return "";
 }

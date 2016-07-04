@@ -26,7 +26,11 @@ protected:
 	string ManchesterEncode(const string&, bool invert, char shortPause, char longPause, char shortPulse, char longPulse);
 	virtual void Clean() { m_DumpPacket = false; };
 	virtual bool needDump(const string &rawData);
+<<<<<<< HEAD
 	void SetTransmitTiming(const uint16_t *timings);
+=======
+	void SetSendTiming(const uint16_t *timings);
+>>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
 
 public:
 
@@ -45,8 +49,12 @@ public:
 	// Кодируем пакет
 	virtual void EncodeData(const string &data, uint16_t bitrate,  uint8_t *buffer, size_t &bufferSize);
 	virtual void EncodePacket(const string &bits, uint16_t bitrate, uint8_t *buffer, size_t &bufferSize);
+<<<<<<< HEAD
 	virtual string bits2timings(const string &bits);
 	virtual string data2bits(const string &data);
+=======
+	virtual string EncodePacket(const string &bits);
+>>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
 
 	static inline bool isPulse(base_type v) { return (v&PULSE_BIT) != 0; };
 	static inline base_type getLengh(base_type v) { return v&PULSE_MASK; };

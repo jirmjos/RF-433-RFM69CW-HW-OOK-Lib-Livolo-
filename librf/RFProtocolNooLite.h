@@ -41,9 +41,14 @@ public:
 	virtual string DecodeData(const string&); // Преобразование бит в данные
 	virtual bool needDump(const string &rawData);
 	
+<<<<<<< HEAD
 	// Кодирование
 	virtual string bits2timings(const string &bits);
 	virtual string data2bits(const string &data);
+=======
+	// �����������
+	virtual string EncodePacket(const string &bits);
+>>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
 
 
 };

@@ -59,7 +59,19 @@ CRFProtocolNooLite::CRFProtocolNooLite()
 	:CRFProtocol(g_timing_pause, g_timing_pulse, 0, 1, "aAaAaAaAaAaAaAaAaAaAaAc")
 {
 	m_Debug = false;
+<<<<<<< HEAD
 	SetTransmitTiming(g_transmit_data);
+=======
+	SetSendTiming(g_transmit_data);
+
+
+	string tmp;
+	tmp = ManchesterEncode("11111", true, 'a', 'b', 'A', 'B');
+	tmp = ManchesterEncode("00000", true, 'a', 'b', 'A', 'B');
+	tmp = ManchesterEncode("111000", true, 'a', 'b', 'A', 'B');
+	tmp = ManchesterEncode("10101010", true, 'a', 'b', 'A', 'B');
+
+>>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
 }
 
 
@@ -141,7 +153,11 @@ string CRFProtocolNooLite::DecodePacket(const string& raw)
 	for_each(string_vector, v, i)
 	{
 		res = ManchesterDecode('a' + *i, false, 'a', 'b', 'A', 'B');
+<<<<<<< HEAD
 		string tmp = bits2timings(res);
+=======
+		string tmp = EncodePacket(res);
+>>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
 		uint8_t tmpBuffer[100];
 		size_t tmpBufferSize = sizeof(tmpBuffer);
 		EncodeData(res, 2000, tmpBuffer, tmpBufferSize);
@@ -243,7 +259,11 @@ bool CRFProtocolNooLite::needDump(const string &rawData)
 }
 
 
+<<<<<<< HEAD
 string CRFProtocolNooLite::bits2timings(const string &bits)
+=======
+string CRFProtocolNooLite::EncodePacket(const string &bits)
+>>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
 {
 	string start;
 	for (int i = 0; i < 37; i++)
@@ -251,11 +271,16 @@ string CRFProtocolNooLite::bits2timings(const string &bits)
 		start += '1';
 	}
 
+<<<<<<< HEAD
 	return 'b'+ManchesterEncode(start, true, 'a', 'b', 'A', 'B')
+=======
+	return ManchesterEncode(start, true, 'a', 'b', 'A', 'B')
+>>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
 		+ 'b' + ManchesterEncode(bits, true, 'a', 'b', 'A', 'B')
 		+ 'b' + ManchesterEncode(bits, true, 'a', 'b', 'A', 'B');
 }
 
+<<<<<<< HEAD
 string l2bits(uint16_t val, int bits)
 {
 	string res;
@@ -333,3 +358,5 @@ string CRFProtocolNooLite::data2bits(const string &data)
 }
 
 
+=======
+>>>>>>> d2755d24ec586bdec1bc1dc7d402c870cd81660e
