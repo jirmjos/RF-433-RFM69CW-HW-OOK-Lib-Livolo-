@@ -143,6 +143,8 @@ void RFM69OOK::sendFrame(const void* buffer, uint8_t bufferSize)
   for (uint8_t i = 0; i < bufferSize; i++)
     data[i+2] = ((unsigned char*)buffer)[i];
 
+  CLog::Default()->PrintBuffer(1, data, bufferSize+2);
+
   int res = m_spi->xfer2(data, bufferSize+2, tmp, 0);
 
   // no need to wait for transmit mode to be ready since its handled by the radio
