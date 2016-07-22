@@ -11,7 +11,8 @@
 #elif defined(WIN32)
 #	define HA_WIN32
 #	define HA2
-#	define HAVE_JSON_JSON_H
+#	define HAVE_JSONCPP_JSON_JSON_H
+#	define JSONCPP_DISABLE_DLL_INTERFACE_WARNING
 #	define HAVE_LIBXML_TREE_H
 #	define HAVE_LUA_H
 //#define snprintf sprintf_s
@@ -24,7 +25,9 @@
 #endif 
 
 #ifdef HA2
-#	define USE_XML
+#	ifdef HAVE_LIBXML_TREE_H
+#		define USE_XML
+#	endif
 #	define USE_CONFIG
 #endif
 
@@ -34,7 +37,7 @@
 #	define _LIBUTILS_USE_XML
 #	define _LIBUTILS_USE_XML_LIBXML2
 #elif defined(USE_JSON) && defined(HAVE_JSON_JSON_H)
-#	define CConfigItem Jsoncpp::Value
+//#	define CConfigItem Jsoncpp::Value
 #endif
 
 

@@ -40,19 +40,19 @@ CWBDevice::~CWBDevice()
 #ifdef USE_CONFIG
 void CWBDevice::Init(CConfigItem config)
 {
-	m_Name = config.GetAttribute("Name");
-	m_Description = config.GetAttribute("Description");
+	m_Name = config.getStr("Name");
+	m_Description = config.getStr("Description");
 
 	CConfigItemList controls;
-	config.GetElementList("Control", controls);
+	config.getList("Control", controls);
 	for_each(CConfigItemList, controls, control)
 	{
 		CWBControl *Control = new CWBControl;
-		Control->Name = (*control)->GetAttribute("Name");
-		Control->Source = (*control)->GetAttribute("Source", false);
-		Control->SourceType = (*control)->GetAttribute("SourceType", false);
-		Control->Readonly = atoi((*control)->GetAttribute("Readonly", false, "1")) != 0;
-		string type = (*control)->GetAttribute("Type");
+		Control->Name = (*control)->getStr("Name");
+		Control->Source = (*control)->getStr("Source", false);
+		Control->SourceType = (*control)->getStr("SourceType", false);
+		Control->Readonly = (*control)->getInt("Readonly", false, 1) != 0;
+		string type = (*control)->getStr("Type");
 		Control->Type = CWBControl::Error;
 		for (int i = 0; g_Topics[i][0];i++)
 		{
