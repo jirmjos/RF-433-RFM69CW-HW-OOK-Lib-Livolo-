@@ -149,6 +149,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="Config.cpp" />
     <ClCompile Include="ConfigItem.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Exception.cpp" />
@@ -166,6 +167,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
+    <ClInclude Include="Config.h" />
     <ClInclude Include="ConfigItem.h" />
     <ClInclude Include="Exception.h" />
     <ClInclude Include="haconfig.h" />

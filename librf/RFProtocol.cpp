@@ -6,6 +6,7 @@ CRFProtocol::CRFProtocol(range_array_type zeroLengths, range_array_type pulseLen
 :m_ZeroLengths(zeroLengths), m_PulseLengths(pulseLengths), m_Bits(bits), m_MinRepeat(minRepeat), m_PacketDelimeter(PacketDelimeter)
 {
 	m_Debug = false;
+	m_Log = CLog::Default();
 }
 
 
@@ -20,6 +21,13 @@ string c2s(char c)
 	tmp[1] = 0;
 	return tmp;
 }
+
+void CRFProtocol::SetTransmitTiming(const uint16_t *timings)
+{
+	m_SendTimingPauses = m_SendTimingPulses = timings;
+	while (*m_SendTimingPulses++);
+}
+
 
 string CRFProtocol::Parse(base_type* data, size_t dataLen)
 {
@@ -36,8 +44,14 @@ string CRFProtocol::Parse(base_type* data, size_t dataLen)
 
 	string bits = DecodeBits(rawPackets);
 
-	if(bits.length())
-		return getName()+":"+ DecodeData(bits);
+	if (bits.length())
+	{
+		string res = getName() + ":" + DecodeData(bits);
+//		uint8_t tmpBuffer[100];
+//		size_t tmpBufferSize = sizeof(tmpBuffer);
+//		EncodeData(res, 2000, tmpBuffer, tmpBufferSize);
+		return res;
+	}
 
 	if (needDump(decodedRaw))
 		m_DumpPacket = true;
@@ -45,13 +59,15 @@ string CRFProtocol::Parse(base_type* data, size_t dataLen)
 	return "";
 }
  
+/*
 string CRFProtocol::tryDecode(string data)
 {
 	if (data.length() >= m_Bits)
 		return getName() + ":" + data;
 	else
 		return "";
-}
+}*/
+
 
 
 string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
@@ -242,7 +258,7 @@ string CRFProtocol::ManchesterDecode(const string&raw, bool expectPulse, char sh
 	{
 		switch (state)
 		{
-		case expectStartPulse:   // Ожидаем короткий пульс, всегда 1
+		case expectStartPulse:   // РћР¶РёРґР°РµРј РєРѕСЂРѕС‚РєРёР№ РїСѓР»СЊСЃ, РІСЃРµРіРґР° 1
 			if (*c == shortPulse)
 			{
 				res += expectPulse ? "1":"0";
@@ -253,7 +269,7 @@ string CRFProtocol::ManchesterDecode(const string&raw, bool expectPulse, char sh
 				return "";
 			}
 			break;
-		case expectStartPause:  // Ожидаем короткую паузу, всегда 0
+		case expectStartPause:  // РћР¶РёРґР°РµРј РєРѕСЂРѕС‚РєСѓСЋ РїР°СѓР·Сѓ, РІСЃРµРіРґР° 0
 			if (*c == shortPause)
 			{
 				res += expectPulse?"0":"1";
@@ -264,7 +280,7 @@ string CRFProtocol::ManchesterDecode(const string&raw, bool expectPulse, char sh
 				return "";
 			}
 			break;
-		case expectMiddlePulse:  // Ожидаем пульс. Если короткий - пара закончилась, ждем короткую стартовую паузу. Если длинный, получили начало след пары и ждем среднюю паузу
+		case expectMiddlePulse:  // РћР¶РёРґР°РµРј РїСѓР»СЊСЃ. Р•СЃР»Рё РєРѕСЂРѕС‚РєРёР№ - РїР°СЂР° Р·Р°РєРѕРЅС‡РёР»Р°СЃСЊ, Р¶РґРµРј РєРѕСЂРѕС‚РєСѓСЋ СЃС‚Р°СЂС‚РѕРІСѓСЋ РїР°СѓР·Сѓ. Р•СЃР»Рё РґР»РёРЅРЅС‹Р№, РїРѕР»СѓС‡РёР»Рё РЅР°С‡Р°Р»Рѕ СЃР»РµРґ РїР°СЂС‹ Рё Р¶РґРµРј СЃСЂРµРґРЅСЋСЋ РїР°СѓР·Сѓ
 			if (*c == shortPulse)
 			{
 				state = expectStartPause;
@@ -279,7 +295,7 @@ string CRFProtocol::ManchesterDecode(const string&raw, bool expectPulse, char sh
 				return "";
 			}
 			break;
-		case expectMiddlePause:  // Ожидаем паузу. Если короткая - пара закончилась, ждем короткую стартовый пульс. Если длинная, получили начало след пары и ждем средний пульс
+		case expectMiddlePause:  // РћР¶РёРґР°РµРј РїР°СѓР·Сѓ. Р•СЃР»Рё РєРѕСЂРѕС‚РєР°СЏ - РїР°СЂР° Р·Р°РєРѕРЅС‡РёР»Р°СЃСЊ, Р¶РґРµРј РєРѕСЂРѕС‚РєСѓСЋ СЃС‚Р°СЂС‚РѕРІС‹Р№ РїСѓР»СЊСЃ. Р•СЃР»Рё РґР»РёРЅРЅР°СЏ, РїРѕР»СѓС‡РёР»Рё РЅР°С‡Р°Р»Рѕ СЃР»РµРґ РїР°СЂС‹ Рё Р¶РґРµРј СЃСЂРµРґРЅРёР№ РїСѓР»СЊСЃ
 			if (*c == shortPause)
 			{
 				state = expectStartPulse;
@@ -302,8 +318,95 @@ string CRFProtocol::ManchesterDecode(const string&raw, bool expectPulse, char sh
 	return res;
 }
 
+string replaceDouble(const string &src, char search, char replace)
+{
+	string res = src;
+	char tmp[3];
+	tmp[0] = tmp[1] = search;
+	tmp[2] = 0;
+	char tmp2[2];
+	tmp2[0] = replace;
+	tmp2[1] = 0;
+
+	size_t pos;
+	while ((pos = res.find(tmp)) != string::npos)
+	{
+		res = res.replace(pos, 2, tmp2);
+	}
+
+	return res;
+}
+
+string CRFProtocol::ManchesterEncode(const string&bits, bool invert, char shortPause, char longPause, char shortPulse, char longPulse)
+{
+	string res;
+	for_each_const(string, bits, i)
+	{
+		bool bit = *i == '1';
+
+		if (bit ^ invert)
+		{
+			res += "Aa";
+			//lastPulse = false;
+		}
+		else
+		{
+			res += "aA";
+			//lastPulse = true;
+		}
+
+	}
+	
+	res = replaceDouble(res, shortPause, longPause);
+	res = replaceDouble(res, shortPulse, longPulse);
+
+	return res;
+}
+
 
 bool CRFProtocol::needDump(const string &rawData)
 {
 	return false;
+}
+
+
+void CRFProtocol::EncodeData(const string &data, uint16_t bitrate, uint8_t *buffer, size_t &bufferSize)
+{
+	EncodePacket(data2bits(data), bitrate, buffer, bufferSize);
+}
+
+void CRFProtocol::EncodePacket(const string &bits, uint16_t bitrate, uint8_t *buffer, size_t &bufferSize)
+{
+	string timings = bits2timings(bits);
+	uint16_t bitLen = 1000000L / bitrate;
+	memset(buffer, 0, bufferSize);
+
+	size_t bitNum = 0;
+	for_each (string, timings, i)
+	{
+		bool pulse = *i < 'a';
+		uint16_t len = pulse ? m_SendTimingPulses[*i - 'A'] : m_SendTimingPulses[*i - 'a'];
+		uint16_t bits = len / bitLen; // TODO РћРєСЂСѓРіР»РµРЅРёРµ РґР»СЏ РЅРµРєСЂР°С‚РЅРѕРіРѕ Р±РёС‚СЂРµР№С‚Р°?
+
+		for (int j = 0; j < bits; j++)
+		{
+			if (pulse)
+				buffer[bitNum >> 3] |= (1 << (7-(bitNum & 7)));
+
+			bitNum++;
+		}
+	}
+
+	bufferSize = (bitNum+7)>>3;
+}
+
+
+string CRFProtocol::bits2timings(const string &bits)
+{
+	throw CHaException(CHaException::ErrNotImplemented, "CRFProtocol::bits2timings");
+}
+
+string CRFProtocol::data2bits(const string &data)
+{
+	throw CHaException(CHaException::ErrNotImplemented, "CRFProtocol::data2bits");
 }
