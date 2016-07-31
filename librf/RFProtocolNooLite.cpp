@@ -328,6 +328,7 @@ string CRFProtocolNooLite::data2bits(const string &data)
 			else if (fmt!=0) throw CHaException(CHaException::ErrBadParam, "bad format: "+data);
 			break;
 
+<<<<<<< HEAD
 		case nlcmd_shadow_level:		//6 – установить заданную в «Данные к команде_0» яркость
 			if (fmt==0xff)	
 			{
@@ -336,6 +337,11 @@ string CRFProtocolNooLite::data2bits(const string &data)
 				else 
 					fmt=3;
 			}
+=======
+		case nlcmd_level:		//6 – установить заданную в «Данные к команде_0» яркость
+			if (fmt==0xff)	
+				fmt=1;
+>>>>>>> 0af2fd42aa82e503abf53057f4864fce4c6d05e0
 
 			if (fmt==1) 
 				res += l2bits(level,8);

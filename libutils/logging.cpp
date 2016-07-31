@@ -18,10 +18,10 @@ LogParam::LogParam()
 #ifdef USE_CONFIG
 LogParam::LogParam(CConfigItem node)
 {
-	FileName = node.GetAttribute("FileName");
-	LogTime = (node.GetAttribute("LogTime", false, "yes")=="yes")?true:false;
-	ConsoleLevel = atoi(node.GetAttribute("ConsoleLevel", false, "-1").c_str());
-	FileLevel = atoi(node.GetAttribute("FileLevel", false, "0").c_str());
+	FileName = node.getStr("FileName");
+	LogTime = (node.getStr("LogTime", false, "yes")=="yes")?true:false;
+	ConsoleLevel = node.getInt("ConsoleLevel", false, -1);
+	FileLevel = node.getInt("FileLevel", false, 0);
 }
 #endif
 
@@ -110,11 +110,11 @@ void CLog::CloseAll()
 void CLog::Init(CConfigItem *Config)
 {
 	CConfigItemList nodes;
-	Config->GetElementList("Log", nodes);
+	Config->getList("Log", nodes);
 	
 	for(CConfigItemList::iterator i=nodes.begin();i!=nodes.end();i++)
 	{
-		m_LogsCfg[(*i)->GetAttribute("Name")] = LogParam(**i);
+		m_LogsCfg[(*i)->getStr("Name")] = LogParam(**i);
 	}
 }
 #endif

@@ -48,6 +48,9 @@
     <ClCompile Include="RFProtocolNooLite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RFProtocolMotionSensor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RFAnalyzer.h">
@@ -93,6 +96,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RFProtocolNooLite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RFProtocolMotionSensor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

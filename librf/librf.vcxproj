@@ -151,6 +151,7 @@
     <ClCompile Include="RFParser.cpp" />
     <ClCompile Include="RFProtocol.cpp" />
     <ClCompile Include="RFProtocolLivolo.cpp" />
+    <ClCompile Include="RFProtocolMotionSensor.cpp" />
     <ClCompile Include="RFProtocolNooLite.cpp" />
     <ClCompile Include="RFProtocolOregon.cpp" />
     <ClCompile Include="RFProtocolRaex.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="RFParser.h" />
     <ClInclude Include="RFProtocol.h" />
     <ClInclude Include="RFProtocolLivolo.h" />
+    <ClInclude Include="RFProtocolMotionSensor.h" />
     <ClInclude Include="RFProtocolNooLite.h" />
     <ClInclude Include="RFProtocolOregon.h" />
     <ClInclude Include="RFProtocolRaex.h" />

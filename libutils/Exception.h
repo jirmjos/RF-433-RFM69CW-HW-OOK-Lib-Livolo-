@@ -176,4 +176,6 @@ public:
 	virtual void Dump(CLog *log);
 };
 
+#define NOT_IMPLEMENTED throw CHaException(CHaException::ErrNotImplemented, "%s(%d)", __FILE__, __LINE__)
+
 #endif

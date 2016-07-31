@@ -197,7 +197,11 @@ CConfigItem CConfigItem::getNode(string path, bool bMandatory)
 		CConfigItem parent = getNode(First);
 
 		if (parent.isEmpty())
+<<<<<<< HEAD
 			return CConfigItem();
+=======
+			return NULL;
+>>>>>>> 0af2fd42aa82e503abf53057f4864fce4c6d05e0
 		
 		return parent.getNode(Other);
 	}
@@ -265,7 +269,11 @@ void CConfigItem::getList(string path, CConfigItemList &list)
 			}
 		}
 #elif defined(USE_JSON)
+<<<<<<< HEAD
 		NOT_IMPLEMENTED;
+=======
+		NOT_IMPLEMENTED
+>>>>>>> 0af2fd42aa82e503abf53057f4864fce4c6d05e0
 #endif
 	}
 }
