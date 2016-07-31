@@ -6,6 +6,7 @@ CRFProtocol::CRFProtocol(range_array_type zeroLengths, range_array_type pulseLen
 :m_ZeroLengths(zeroLengths), m_PulseLengths(pulseLengths), m_Bits(bits), m_MinRepeat(minRepeat), m_PacketDelimeter(PacketDelimeter)
 {
 	m_Debug = false;
+	m_Log = CLog::Default();
 }
 
 

@@ -52,6 +52,7 @@ static const char* g_nooLite_Commands[]=
 	"temperature",		//21 – передача информации о текущей температуре и
 						//     влажности (Информация о температуре и влажности содержится в
 						//     поле «Данные к команде_x».)
+	NULL
 };
 
 
@@ -65,6 +66,20 @@ CRFProtocolNooLite::CRFProtocolNooLite()
 
 CRFProtocolNooLite::~CRFProtocolNooLite()
 {
+}
+
+CRFProtocolNooLite::nooLiteCommandType CRFProtocolNooLite::getCommand(const string &name)
+{
+	nooLiteCommandType res = nlcmd_off;	
+	for (const char **p=g_nooLite_Commands;*p;p++)
+	{
+		if (name==*p)
+			return res;
+
+		res= (nooLiteCommandType)(res+1);
+	}
+
+	return nlcmd_error;
 }
 
 
@@ -246,7 +261,7 @@ bool CRFProtocolNooLite::needDump(const string &rawData)
 string CRFProtocolNooLite::bits2timings(const string &bits)
 {
 	string start;
-	for (int i = 0; i < 37; i++)
+	for (int i = 0; i < 39; i++)
 	{
 		start += '1';
 	}
@@ -282,14 +297,20 @@ string CRFProtocolNooLite::data2bits(const string &data)
 	string sCmd = values["cmd"];
 	string sFmt = values["fmt"];
 	string sFlip = values["flip"];
+	string sLevel = values["level"];
+	string sr = values["r"]; uint8_t r = sr.length()?atoi(sr):255;
+	string sg = values["g"]; uint8_t g = sg.length()?atoi(sg):255;
+	string sb = values["b"]; uint8_t b = sb.length()?atoi(sb):255;
 
 	uint16_t addr = (uint16_t)strtol(sAddr.c_str(), NULL, 16);
 	uint8_t cmd = atoi(sCmd);
 	uint8_t fmt = sFmt.length()?atoi(sFmt):0xFF;
 	bool flip = sFlip.length()?(bool)atoi(sFlip):!m_lastFlip[addr];
 	m_lastFlip[addr] = flip;
+	uint8_t level = atoi(sLevel);
+
 	int extraBytes = 0;
-	string res;
+	string res="1"+l2bits(flip,1)+l2bits(cmd,4);
 
 	switch (cmd)
 	{
@@ -299,19 +320,29 @@ string CRFProtocolNooLite::data2bits(const string &data)
 		case nlcmd_slowup:			//3 – запускает плавное повышение яркости
 		case nlcmd_switch:			//4 – включает или выключает нагрузку
 		case nlcmd_slowswitch:		//5 – запускает плавное изменение яркости в обратном
+		case nlcmd_slowstop:		//10 – остановить регулировку
 		case nlcmd_bind:			//15 – сообщает, что устройство хочет записать свой адрес в память
 		case nlcmd_unbind:			//9 – запускает процедуру стирания адреса управляющего устройства из памяти исполнительного
-			if (fmt!=0)
-				throw CHaException(CHaException::ErrBadParam, "bad format: "+data);
-			res = "1"+l2bits(flip,1)+l2bits(cmd,4)+l2bits(addr,16)+l2bits(fmt,8)+l2bits(0/*crc*/,8);
+		case nlcmd_switchcolor:		//17 – переключение цвета
+			if (fmt==0xff)	fmt=0;
+			else if (fmt!=0) throw CHaException(CHaException::ErrBadParam, "bad format: "+data);
 			break;
 
+		case nlcmd_level:		//6 – установить заданную в «Данные к команде_0» яркость
+			if (fmt==0xff)	
+				fmt=1;
+
+			if (fmt==1) 
+				res += l2bits(level,8);
+			else if (fmt==3)
+				res += l2bits(r,8)+l2bits(g,8)+l2bits(b,8)+l2bits(0,8);
+			else
+				throw CHaException(CHaException::ErrBadParam, "bad format: "+data);
+			break;
 
 /*
-		nlcmd_shadow_level,		//6 – установить заданную в «Данные к команде_0» яркость
 		nlcmd_callscene,		//7 – вызвать записанный сценарий
 		nlcmd_recordscene,		//8 – записать сценарий
-		nlcmd_slowstop,			//10 – остановить регулировку
 		nlcmd_slowcolor,		//16 – включение плавного перебора цвета
 		nlcmd_switchcolor,		//17 – переключение цвета
 		nlcmd_switchmode,		//18 – переключение режима работы
@@ -323,11 +354,13 @@ string CRFProtocolNooLite::data2bits(const string &data)
 				throw CHaException(CHaException::ErrBadParam, "usupported cmd: "+data);
 	}
 
+	res += l2bits(addr,16)+l2bits(fmt,8)+l2bits(0/*crc*/,8);
 	uint8_t packet[100];
 	size_t packetLen = sizeof(packet);
 	uint8_t crc;
 	bits2packet(res, packet, &packetLen, &crc);
 	res = res.substr(0, res.length()-8)+l2bits(crc,8);
+	m_Log->Printf(6, "res=%s", res.c_str());
 
 	return res; //???? remove first bit ?? TODO
 }
