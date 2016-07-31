@@ -9,7 +9,14 @@
 	#include <libxml/xpathInternals.h>
 #endif
 
-#ifdef _LIBUTILS_USE_XML
+#ifdef USE_CONFIG
+
+#ifdef _LIBUTILS_USE_XML_LIBXML2
+	const char* CConfigItem::CONFIG_EXTENSION = "xml";
+#elif defined(USE_JSON)
+	const char* CConfigItem::CONFIG_EXTENSION = "json";
+#endif
+
 
 CConfigItemList::CConfigItemList()
 :vector<CConfigItem*>()
@@ -36,12 +43,10 @@ CConfigItem::CConfigItem(void)
 #endif
 }
 
-#ifdef _LIBUTILS_USE_XML_LIBXML2
-CConfigItem::CConfigItem(xmlNodePtr node)
+CConfigItem::CConfigItem(configNode node)
 {
 	m_Node = node;
 }
-#endif
 
 CConfigItem::CConfigItem(const CConfigItem& cpy)
 {
@@ -105,18 +110,28 @@ string CConfigItem::GetValue(string path)
 }
 */
 
-string CConfigItem::GetAttribute(string path, bool bMandatory, string defaultValue)
-{
+bool CConfigItem::isEmpty() 
+{ 
 #ifdef _LIBUTILS_USE_XML_LIBXML2
+	return m_Node == NULL;
+#elif defined(USE_JSON)
+	return m_Node.isObject() && m_Node.empty() || m_Node.isArray() && m_Node.empty();
+#endif
+};
+
+
+string CConfigItem::getStr(string path, bool bMandatory, string defaultValue)
+{
 	string First, Other;
 	ParseXPath(path, First, Other);
 
 	if (Other.length())
 	{
-		return GetElement(First).GetAttribute(Other);
+		return getNode(First).getStr(Other, bMandatory, defaultValue);
 	}
 	else
 	{
+#ifdef _LIBUTILS_USE_XML_LIBXML2
 		char* val = (char*)xmlGetProp(m_Node, BAD_CAST path.c_str());
 
 		if (!val)
@@ -129,23 +144,61 @@ string CConfigItem::GetAttribute(string path, bool bMandatory, string defaultVal
 
 		string sVal = val;
 		xmlFree(val);
+#elif defined(USE_JSON)
+		string sVal = m_Node[path].asCString();
+#endif
 		return sVal;
 	}
-#endif
 }
 
-CConfigItem CConfigItem::GetElement(string path)
+int CConfigItem::getInt(string path, bool bMandatory, int defaultValue)
 {
-#ifdef _LIBUTILS_USE_XML_LIBXML2
 	string First, Other;
 	ParseXPath(path, First, Other);
 
 	if (Other.length())
 	{
-		return GetElement(First).GetElement(Other);
+		return getNode(First).getInt(Other, bMandatory, defaultValue);
 	}
 	else
 	{
+#ifdef _LIBUTILS_USE_XML_LIBXML2
+		char* val = (char*)xmlGetProp(m_Node, BAD_CAST path.c_str());
+
+		if (!val)
+		{
+			if (bMandatory)
+				throw CHaException(CHaException::ErrAttributeNotFound, path);
+			else
+				return defaultValue;
+		}
+
+		int iVal = atoi(val);
+		xmlFree(val);
+#elif defined(USE_JSON)
+		int iVal = m_Node[path].asInt();
+#endif
+		return iVal;
+	}
+}
+
+CConfigItem CConfigItem::getNode(string path, bool bMandatory)
+{
+	string First, Other;
+	ParseXPath(path, First, Other);
+
+	if (Other.length())
+	{
+		CConfigItem parent = getNode(First);
+
+		if (parent.isEmpty())
+			return NULL;
+		
+		return parent.getNode(Other);
+	}
+	else
+	{
+#ifdef _LIBUTILS_USE_XML_LIBXML2
 		xmlNodePtr retVal = NULL, cur = m_Node->children;
 
 		while(cur)
@@ -161,28 +214,32 @@ CConfigItem CConfigItem::GetElement(string path)
 
 			cur = cur->next;
 		}
+#elif defined(USE_JSON)
+		configNode retVal = m_Node[First];
+#endif
 
 		return retVal;
 	}
-#endif
 }
 
-void CConfigItem::GetElementList(string path, CConfigItemList &list)
+void CConfigItem::getList(string path, CConfigItemList &list)
 {
 	if (!m_Node)
 		return;
 
-#ifdef _LIBUTILS_USE_XML_LIBXML2
+//	;
+
 	string First, Other;
 	ParseXPath(path, First, Other);
 
 	if (Other.length())
 	{
-		GetElement(First).GetElementList(Other, list);
+		getNode(First).getList(Other, list);
 	}
 	else
 	{
 		list.clear();
+#ifdef _LIBUTILS_USE_XML_LIBXML2
 		xmlNodePtr cur = m_Node->children;
 
 		while(cur)
@@ -193,28 +250,39 @@ void CConfigItem::GetElementList(string path, CConfigItemList &list)
 			}
 			cur = cur->next;
 		}
-	}
+
+		if (list.size() == 0)
+		{
+			CConfigItem node = getNode(path + "s");
+			if (node.isNode())
+			{
+				node.getList(path, list);
+			}
+		}
+#elif defined(USE_JSON)
+		NOT_IMPLEMENTED
 #endif
+	}
 }
 
-#ifdef _LIBUTILS_USE_XML_LIBXML2
-	void CConfigItem::SetNode(xmlNodePtr node)
-	{
-		m_Node = node;
-		/*  never free single node
-		if (m_Node)
-			xmlFreeNode(m_Node);
-		m_Node = xmlCopyNode(node, true);
-		*/
-	}
-#endif
+void CConfigItem::SetNode(configNode node)
+{
+	m_Node = node;
+	/*  never free single node
+	if (m_Node)
+		xmlFreeNode(m_Node);
+	m_Node = xmlCopyNode(node, true);
+	*/
+}
 
+bool CConfigItem::isNode()
+{
 #ifdef _LIBUTILS_USE_XML_LIBXML2
-	bool CConfigItem::isNode()
-	{
-		return m_Node->type==XML_ELEMENT_NODE;
-	};
+		return m_Node && m_Node->type==XML_ELEMENT_NODE;
+#elif defined(USE_JSON)
+	return m_Node.isObject();
 #endif
+};
 
 
 
