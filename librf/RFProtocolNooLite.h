@@ -31,11 +31,8 @@ public:
 		nlcmd_temperature,		//21 – передача информации о текущей температуре и
 								//     влажности (Информация о температуре и влажности содержится в
 								//     поле «Данные к команде_x».)
-<<<<<<< HEAD
 
 		nlcmd_error=-1
-=======
->>>>>>> 0af2fd42aa82e503abf53057f4864fce4c6d05e0
 	};
 
 	CRFProtocolNooLite();
@@ -49,10 +46,7 @@ public:
 	// Кодирование
 	virtual string bits2timings(const string &bits);
 	virtual string data2bits(const string &data);
-<<<<<<< HEAD
 	nooLiteCommandType getCommand(const string &name);
-=======
->>>>>>> 0af2fd42aa82e503abf53057f4864fce4c6d05e0
 
 };
 

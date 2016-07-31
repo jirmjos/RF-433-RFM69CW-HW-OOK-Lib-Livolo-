@@ -2,6 +2,7 @@
 #include "libutils.h"
 #include "Config.h"
 #include "Exception.h"
+#include <fstream>
 //#include "strutils.h"
 
 
@@ -31,10 +32,10 @@ void CConfig::Load(string ConfigFileName)
 #elif defined(USE_JSON)
 	Json::Reader reader;
 	Json::Value root;
-	ifstream file(ConfigFileName);
+	ifstream file(ConfigFileName.c_str());
 	bool parsingSuccessful = reader.parse(file, root);
 	if (!parsingSuccessful)
-		throw CHaException(CHaException::ErrParsingError, "Failed to parse %s. Error %s", ConfigFileName, reader.getFormatedErrorMessages().c_str());
+		throw CHaException(CHaException::ErrParsingError, "Failed to parse %s. Error %s", ConfigFileName.c_str(), reader.getFormatedErrorMessages().c_str());
 	m_Document = root;
 #else
 #	error usupported configuration
@@ -45,11 +46,7 @@ void CConfig::Load(string ConfigFileName)
 
 string CConfig::getStr(const char* path)
 {
-#ifdef _LIBUTILS_USE_XML_LIBXML2
 	return m_Document.getStr(path);
-#elif defined(USE_JSON)
-	return  m_Document.GetAttribute(path);
-#endif
 }
 
 CConfigItem CConfig::getNode(const char* path)
