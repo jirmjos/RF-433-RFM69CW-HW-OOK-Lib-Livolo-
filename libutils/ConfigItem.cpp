@@ -189,7 +189,12 @@ CConfigItem CConfigItem::getNode(string path, bool bMandatory)
 
 	if (Other.length())
 	{
-		return getNode(First).getNode(Other);
+		CConfigItem parent = getNode(First);
+
+		if (parent.isEmpty())
+			return NULL;
+		
+		return parent.getNode(Other);
 	}
 	else
 	{
