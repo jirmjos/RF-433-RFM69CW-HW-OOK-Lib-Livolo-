@@ -30,59 +30,31 @@
 // **********************************************************************************
 
 #include "stdafx.h"
+#include <unistd.h>
+#include <time.h>
+#include <sys/time.h>
+#ifdef __MACH__
+# include <mach/clock.h>
+# include <mach/mach.h>
+#endif
+#include "../libutils/Thread.h"
 #include "spidev_lib++.h"
-#include <RFM69OOK.h>
-#include <RFM69OOKregisters.h>
+#include "RFM69OOK.h"
+#include "RFM69OOKregisters.h"
 
 volatile byte RFM69OOK::_mode;  // current transceiver state
 volatile int RFM69OOK::RSSI; 	// most accurate RSSI during reception (closest to the reception)
 RFM69OOK* RFM69OOK::selfPointer;
+volatile uint8_t RFM69OOK::PAYLOADLEN;
 
-RFM69OOK::RFM69OOK(SPI* spi)
-  :m_spi(spi)
+RFM69OOK::RFM69OOK(SPI* spi, int gpioInt)
+  :m_spi(spi), m_gpioInt(gpioInt)
 {
 
 }
 
 bool RFM69OOK::initialize()
 {
-  const byte CONFIG_OLD[][2] =
-  {
-    /* 0x01 */ { REG_OPMODE, RF_OPMODE_SEQUENCER_OFF | RF_OPMODE_LISTEN_OFF | RF_OPMODE_STANDBY },  // TODO: ??
-    /* 0x02 */ { REG_DATAMODUL, RF_DATAMODUL_DATAMODE_CONTINUOUSNOBSYNC | RF_DATAMODUL_MODULATIONTYPE_OOK | RF_DATAMODUL_MODULATIONSHAPING_00 }, // no shaping
-    /* 0x03 */ { REG_BITRATEMSB, 0x03}, // bitrate: 32768 Hz TODO??
-    /* 0x04 */ { REG_BITRATELSB, 0xD1},
-    /* 0x19 */ { REG_RXBW, RF_RXBW_DCCFREQ_010 | RF_RXBW_MANT_24 | RF_RXBW_EXP_4}, // BW: 10.4 kHz
-    /* 0x1B */ { REG_OOKPEAK, RF_OOKPEAK_THRESHTYPE_PEAK | RF_OOKPEAK_PEAKTHRESHSTEP_000 | RF_OOKPEAK_PEAKTHRESHDEC_000 },
-    /* 0x1D */ { REG_OOKFIX, 6 }, // Fixed threshold value (in dB) in the OOK demodulator
-    /* 0x29 */ { REG_RSSITHRESH, 140 }, // RSSI threshold in dBm = -(REG_RSSITHRESH / 2)
-    /* 0x6F */ { REG_TESTDAGC, RF_DAGC_IMPROVED_LOWBETA0 }, // run DAGC continuously in RX mode, recommended default for AfcLowBetaOn=0
-    {255, 0}
-  };
-
-  /*
-+radio.writeReg( REG_OPMODE, RF_OPMODE_SEQUENCER_ON | RF_OPMODE_LISTEN_OFF | RF_OPMODE_STANDBY )
-+radio.writeReg( REG_DATAMODUL, RF_DATAMODUL_DATAMODE_CONTINUOUSNOBSYNC | RF_DATAMODUL_MODULATIONTYPE_OOK | RF_DATAMODUL_MODULATIONSHAPING_00 ) #no shaping
-+ radio.writeReg( REG_RXBW, RF_RXBW_DCCFREQ_100 | RF_RXBW_MANT_16 | RF_RXBW_EXP_0 ) #(BitRate < 2 * RxBw)
-+ radio.setCarrier(433.92)
-+ radio.writeReg( REG_OOKFIX, 20)
-+ radio.writeReg( REG_OOKPEAK, RF_OOKPEAK_THRESHTYPE_PEAK)
-+ radio.writeReg( REG_DIOMAPPING1, RF_DIOMAPPING1_DIO0_01 | RF_DIOMAPPING1_DIO2_01 ) #DIO0 is the only IRQ we're using
-+ radio.writeReg( REG_DIOMAPPING2, RF_DIOMAPPING2_DIO5_01 | RF_DIOMAPPING2_DIO4_10)
-+ radio.writeReg( REG_PREAMBLELSB, 5 ) # default 3 preamble bytes 0xAAAAAA
-+ radio.writeReg( REG_SYNCCONFIG, RF_SYNC_OFF)
-+ radio.writeReg( REG_PACKETCONFIG1, RF_PACKET1_FORMAT_FIXED | RF_PACKET1_DCFREE_OFF | RF_PACKET1_CRC_OFF | RF_PACKET1_CRCAUTOCLEAR_ON | RF_PACKET1_ADRSFILTERING_OFF )
-+ radio.writeReg( REG_FIFOTHRESH, RF_FIFOTHRESH_TXSTART_FIFONOTEMPTY | RF_FIFOTHRESH_VALUE ) #TX on FIFO not empty
-+ radio.writeReg( REG_PACKETCONFIG2, RF_PACKET2_RXRESTARTDELAY_NONE | RF_PACKET2_AUTORXRESTART_ON | RF_PACKET2_AES_OFF ) #RXRESTARTDELAY must match transmitter PA ramp-down time (bitrate dependent)
-+ radio.writeReg( REG_TESTDAGC, RF_DAGC_IMPROVED_LOWBETA0 ) # # TODO: Should use LOWBETA_ON, but having trouble getting it working
-radio.writeReg( REG_TESTAFC, 0 ) # AFC Offset for low mod index systems
-radio.setPayloadLength(60)
-radio.setBitrate(2000)
-radio.setHighPower(0)
-radio.setRSSIThreshold(-70)
-radio.setMode(rfm69.RF69_MODE_RX)
-*/
-
   const byte CONFIG[][2] =
   {
     /* 0x01 */ { REG_OPMODE, RF_OPMODE_SEQUENCER_ON | RF_OPMODE_LISTEN_OFF | RF_OPMODE_STANDBY },
@@ -124,40 +96,92 @@ radio.setMode(rfm69.RF69_MODE_RX)
   return true;
 }
 
-/*
-// Poll for OOK signal
-bool RFM69OOK::poll()
+unsigned long millis(void)
 {
-  return false;
-//  return digitalRead(_interruptPin);
+  struct timespec ts;
+
+#ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
+  clock_serv_t cclock;
+  mach_timespec_t mts;
+  host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+  clock_get_time(cclock, &mts);
+  mach_port_deallocate(mach_task_self(), cclock);
+  ts.tv_sec = mts.tv_sec;
+  ts.tv_nsec = mts.tv_nsec;
+
+#else
+  clock_gettime(CLOCK_REALTIME, &ts);
+#endif
+    return ( ts.tv_sec * 1000 + ts.tv_nsec / 1000000L );
 }
 
-// Send a 1 or 0 signal in OOK mode
-void RFM69OOK::send(bool signal)
+void RFM69OOK::send(const void* buffer, uint8_t size)
 {
-  //digitalWrite(_interruptPin, signal);
+  writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFB) | RF_PACKET2_RXRESTART); // avoid RX deadlocks
+  uint8_t dataModul = readReg(REG_DATAMODUL);
+  writeReg(REG_DATAMODUL, RF_DATAMODUL_MODULATIONTYPE_OOK | RF_DATAMODUL_MODULATIONSHAPING_00);
+  
+  while (!canSend()) 
+    receiveDone();
+
+  sendFrame(buffer, size);
+  writeReg(REG_DATAMODUL, dataModul);
 }
+
+// internal function
+void RFM69OOK::sendFrame(const void* buffer, uint8_t bufferSize)
+{
+  setMode(RF69OOK_MODE_STANDBY); // turn off receiver to prevent reception while filling fifo
+  while ((readReg(REG_IRQFLAGS1) & RF_IRQFLAGS1_MODEREADY) == 0x00); // wait for ModeReady
+ 
+  writeReg(REG_DIOMAPPING1, RF_DIOMAPPING1_DIO0_00); // DIO0 is "Packet Sent"
+
+  unsigned char data[RF69OOK_MAX_DATA_LEN+2], tmp[RF69OOK_MAX_DATA_LEN+2];
+  if (bufferSize > RF69OOK_MAX_DATA_LEN) bufferSize = RF69OOK_MAX_DATA_LEN;
+  data[0] = REG_FIFO | 0x80;
+  data[1] = bufferSize;
+  for (uint8_t i = 0; i < bufferSize; i++)
+    data[i+2] = ((unsigned char*)buffer)[i];
+
+  CLog::Default()->PrintBuffer(1, data, bufferSize+2);
+
+  int res = m_spi->xfer2(data, bufferSize+2, tmp, 0);
+
+  // no need to wait for transmit mode to be ready since its handled by the radio
+  setMode(RF69OOK_MODE_TX);
+  uint32_t txStart = millis();
+  while (!getGPIO(m_gpioInt) && millis() - txStart < RF69_TX_LIMIT_MS)
+    Sleep(20);
+
+  setMode(RF69OOK_MODE_STANDBY);
+}
+
+bool RFM69OOK::canSend()
+{
+  if (_mode == RF69OOK_MODE_RX && PAYLOADLEN == 0 && readRSSI() < CSMA_LIMIT) // if signal stronger than -100dBm is detected assume channel activity
+  {
+    setMode(RF69OOK_MODE_STANDBY);
+    return true;
+  }
+  return false;
+}
+
 
 // Turn the radio into transmission mode
 void RFM69OOK::transmitBegin()
 {
   setMode(RF69OOK_MODE_TX);
- // detachInterrupt(_interruptNum); // not needed in TX mode
- // pinMode(_interruptPin, OUTPUT);
 }
 
 // Turn the radio back to standby
 void RFM69OOK::transmitEnd()
 {
-  pinMode(_interruptPin, INPUT);
   setMode(RF69OOK_MODE_STANDBY);
 }
-*/
+
 // Turn the radio into OOK listening mode
 void RFM69OOK::receiveBegin()
 {
-  //pinMode(_interruptPin, INPUT);
-  //attachInterrupt(_interruptNum, RFM69OOK::isr0, CHANGE); // generate interrupts in RX mode
   setMode(RF69OOK_MODE_RX);
 }
 
@@ -165,7 +189,6 @@ void RFM69OOK::receiveBegin()
 void RFM69OOK::receiveEnd()
 {
   setMode(RF69OOK_MODE_STANDBY);
-  //detachInterrupt(_interruptNum); // make sure there're no surprises
 }
 
 // Handle pin change interrupts in OOK mode
@@ -235,11 +258,11 @@ void RFM69OOK::setMode(byte newMode)
     switch (newMode) {
         case RF69OOK_MODE_TX:
             writeReg(REG_OPMODE, (readReg(REG_OPMODE) & 0xE3) | RF_OPMODE_TRANSMITTER);
-      if (_isRFM69HW) setHighPowerRegs(true);
+            if (_isRFM69HW) setHighPowerRegs(true);
             break;
         case RF69OOK_MODE_RX:
             writeReg(REG_OPMODE, (readReg(REG_OPMODE) & 0xE3) | RF_OPMODE_RECEIVER);
-      if (_isRFM69HW) setHighPowerRegs(false);
+            if (_isRFM69HW) setHighPowerRegs(false);
             break;
         case RF69OOK_MODE_SYNTH:
             writeReg(REG_OPMODE, (readReg(REG_OPMODE) & 0xE3) | RF_OPMODE_SYNTHESIZER);
@@ -288,59 +311,21 @@ int RFM69OOK::readRSSI(bool forceTrigger) {
 
 byte RFM69OOK::readReg(byte addr)
 {
-  /*
-  select();
-  SPI.transfer(addr & 0x7F);
-  byte regval = SPI.transfer(0);
-  unselect();
-  return regval;*/
   unsigned char val, tmp;
   tmp = addr & 0x7F;
   int res = m_spi->xfer2(&tmp, 1, &val, 1);
-  //printf("xfer2 res = %d", res);
   return val;
 
 }
 
 void RFM69OOK::writeReg(byte addr, byte value)
 {
-  /*
-  select();
-  SPI.transfer(addr | 0x80);
-  SPI.transfer(value);
-  unselect();
-  */
   unsigned char data[2], tmp;
   data[0] = addr | 0x80;
   data[1] = value;
   int res = m_spi->xfer2(data, 2, &tmp, 0);
-  //printf("write res = %d", res);
-
 }
 
-/*
-// Select the transceiver
-void RFM69OOK::select() {
-  noInterrupts();
-  // save current SPI settings
-  _SPCR = SPCR;
-  _SPSR = SPSR;
-  // set RFM69 SPI settings
-  SPI.setDataMode(SPI_MODE0);
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setClockDivider(SPI_CLOCK_DIV4); //decided to slow down from DIV2 after SPI stalling in some instances, especially visible on mega1284p when RFM69 and FLASH chip both present
-  digitalWrite(_slaveSelectPin, LOW);
-} 
-
-/// UNselect the transceiver chip
-void RFM69OOK::unselect() {
-  digitalWrite(_slaveSelectPin, HIGH);
-  // restore SPI settings to what they were before talking to RFM69
-  SPCR = _SPCR;
-  SPSR = _SPSR;
-  interrupts();
-}
-*/
 void RFM69OOK::setHighPower(bool onOff) {
   _isRFM69HW = onOff;
   writeReg(REG_OCP, _isRFM69HW ? RF_OCP_OFF : RF_OCP_ON);
@@ -354,12 +339,6 @@ void RFM69OOK::setHighPowerRegs(bool onOff) {
   writeReg(REG_TESTPA1, onOff ? 0x5D : 0x55);
   writeReg(REG_TESTPA2, onOff ? 0x7C : 0x70);
 }
-
-/*
-void RFM69OOK::setCS(byte newSPISlaveSelect) {
-  _slaveSelectPin = newSPISlaveSelect;
-  pinMode(_slaveSelectPin, OUTPUT);
-}*/
 
 // for debugging
 void RFM69OOK::readAllRegs()
@@ -384,3 +363,53 @@ void RFM69OOK::rcCalibration()
   writeReg(REG_OSC1, RF_OSC1_RCCAL_START);
   while ((readReg(REG_OSC1) & RF_OSC1_RCCAL_DONE) == 0x00);
 }
+
+// checks if a packet was received and/or puts transceiver in receive (ie RX or listen) mode
+bool RFM69OOK::receiveDone() {
+  if (_mode == RF69OOK_MODE_RX && PAYLOADLEN > 0)
+  {
+    setMode(RF69OOK_MODE_STANDBY); // enables interrupts
+    return true;
+  }
+  else if (_mode == RF69OOK_MODE_RX) // already in RX no payload yet
+  {
+    return false;
+  }
+
+  receiveBegin();
+  return false;
+}
+
+bool RFM69OOK::getGPIO(int num)
+{
+  char buffer[128];
+  snprintf(buffer, sizeof(buffer), "/sys/class/gpio/gpio%d/value", num);
+  FILE *f = fopen(buffer, "r");
+  if (!f)
+    throw CHaException(CHaException::ErrBadParam, buffer);
+
+  if (fread(buffer, 1, 1, f)!=1)
+    throw CHaException(CHaException::ErrBadParam, "Read GPIO file failed");
+
+  fclose(f);
+
+  return buffer[0]=='1';
+}
+
+uint32_t RFM69OOK::getBitrate()
+{
+  return FXOSC/((readReg(REG_BITRATEMSB)<<8)+readReg(REG_BITRATELSB)); 
+}
+
+void RFM69OOK::setBitrate(uint32_t freqHz)
+{
+  uint32_t val = FXOSC/freqHz;
+
+  if (val>0x10000)
+    throw CHaException(CHaException::ErrBadParam, "setBitrate failed");
+
+  writeReg(REG_BITRATEMSB, val>>8);
+  writeReg(REG_BITRATELSB, val&0xFF);
+}
+
+
