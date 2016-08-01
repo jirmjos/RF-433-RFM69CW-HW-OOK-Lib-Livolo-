@@ -37,7 +37,7 @@
 # include <mach/clock.h>
 # include <mach/mach.h>
 #endif
-#include "../libutils/Thread.h"
+#include "../libutils/thread.h"
 #include "spidev_lib++.h"
 #include "RFM69OOK.h"
 #include "RFM69OOKregisters.h"

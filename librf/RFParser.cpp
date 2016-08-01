@@ -51,7 +51,7 @@ void CRFParser::AddProtocol(string protocol)
 		AddProtocol(new CRFProtocolLivolo());
 		AddProtocol(new CRFProtocolOregon());
 		AddProtocol(new CRFProtocolNooLite());
-		AddProtocol(new CRFProtocolMotionSensor());
+		//AddProtocol(new CRFProtocolMotionSensor());
 	}
 	else
 		throw CHaException(CHaException::ErrBadParam, protocol);
