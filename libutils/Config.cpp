@@ -44,9 +44,9 @@ void CConfig::Load(string ConfigFileName)
 
 }
 
-string CConfig::getStr(const char* path)
+string CConfig::getStr(string path, bool bMandatory, string defaultValue)
 {
-	return m_Document.getStr(path);
+	return m_Document.getStr(path, bMandatory, defaultValue);
 }
 
 CConfigItem CConfig::getNode(const char* path)

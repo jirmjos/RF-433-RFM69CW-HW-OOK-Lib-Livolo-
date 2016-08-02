@@ -22,7 +22,7 @@ public:
 	void Load(string ConfigFileName);
 	void Close();
 
-	string getStr(const char* path);
+	string getStr(string path, bool bMandatory = true, string defaultValue = "");
 	CConfigItem getNode(const char* path);
 	void getList(const char* path, CConfigItemList &list);
 	CConfigItem getRoot(){return m_Document;};

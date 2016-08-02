@@ -265,7 +265,11 @@ void CConfigItem::getList(string path, CConfigItemList &list)
 			}
 		}
 #elif defined(USE_JSON)
-		NOT_IMPLEMENTED;
+		configNode values = m_Node[First];
+		for (Json::ArrayIndex i=0;i<values.size();i++)
+		{
+			list.push_back(new CConfigItem(values[i]));
+		}
 #endif
 	}
 }
