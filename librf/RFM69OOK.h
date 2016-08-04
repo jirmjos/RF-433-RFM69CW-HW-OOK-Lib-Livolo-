@@ -135,4 +135,7 @@ class RFM69OOK {
     bool getGPIO(int num);
 };
 
+unsigned long millis(void);
+
+
 #endif
