@@ -6,17 +6,13 @@
 // defined with this macro as being exported.
 
 #ifdef WIN32
-
-#ifdef LIBRF_EXPORTS
-#define RFLIB_API __declspec(dllexport)
+#	ifdef LIBRF_EXPORTS
+#		define RFLIB_API __declspec(dllexport)
+#	else
+#		define RFLIB_API __declspec(dllimport)
+#	endif
 #else
-#define RFLIB_API __declspec(dllimport)
-#endif
-
-//#define _LIBUTILS_USE_XML_MSXML
-
-#else
-#define RFLIB_API 
+#	define RFLIB_API 
 #endif
 
 

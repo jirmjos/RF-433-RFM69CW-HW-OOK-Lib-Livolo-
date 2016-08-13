@@ -3,7 +3,7 @@
 
 
 CRFAnalyzer::CRFAnalyzer(CLog *log)
-:m_Log(log)
+	:m_Log(log)
 {
 }
 
@@ -22,7 +22,7 @@ void CRFAnalyzer::Analyze(base_type* rawData, size_t rawLen)
 	FillHystogramEx(data, len, true, &pulseDistribution);
 
 
-	// Ищем максимум
+	// РС‰РµРј РјР°РєСЃРёРјСѓРј
 	base_type max_pulse=0, max_pause = 0;
 	const base_type pulseLimit = 20000, pauseLimit = 10000;
 

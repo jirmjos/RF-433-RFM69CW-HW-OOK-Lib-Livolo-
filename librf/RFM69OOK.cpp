@@ -43,12 +43,12 @@
 #include "RFM69OOKregisters.h"
 
 volatile byte RFM69OOK::_mode;  // current transceiver state
-volatile int RFM69OOK::RSSI; 	// most accurate RSSI during reception (closest to the reception)
+volatile int RFM69OOK::RSSI; 	  // most accurate RSSI during reception (closest to the reception)
 RFM69OOK* RFM69OOK::selfPointer;
 volatile uint8_t RFM69OOK::PAYLOADLEN;
 
-RFM69OOK::RFM69OOK(SPI* spi, int gpioInt)
-  :m_spi(spi), m_gpioInt(gpioInt)
+RFM69OOK::RFM69OOK(SPI* spi, int gpioInt, CLog *log)
+  :m_spi(spi), m_gpioInt(gpioInt), m_Log(log)
 {
 
 }
@@ -87,7 +87,6 @@ bool RFM69OOK::initialize()
   }
 
   setFrequencyMHz(433.92);
-
 //  setHighPower(_isRFM69HW); // called regardless if it's a RFM69W or RFM69HW
   setMode(RF69OOK_MODE_STANDBY);
   while ((readReg(REG_IRQFLAGS1) & RF_IRQFLAGS1_MODEREADY) == 0x00); // Wait for ModeReady
@@ -108,16 +107,17 @@ unsigned long millis(void)
   mach_port_deallocate(mach_task_self(), cclock);
   ts.tv_sec = mts.tv_sec;
   ts.tv_nsec = mts.tv_nsec;
-
 #else
   clock_gettime(CLOCK_REALTIME, &ts);
 #endif
+
     return ( ts.tv_sec * 1000 + ts.tv_nsec / 1000000L );
 }
 
 void RFM69OOK::send(const void* buffer, uint8_t size)
 {
   writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFB) | RF_PACKET2_RXRESTART); // avoid RX deadlocks
+  
   uint8_t dataModul = readReg(REG_DATAMODUL);
   writeReg(REG_DATAMODUL, RF_DATAMODUL_MODULATIONTYPE_OOK | RF_DATAMODUL_MODULATIONSHAPING_00);
   
@@ -132,7 +132,8 @@ void RFM69OOK::send(const void* buffer, uint8_t size)
 void RFM69OOK::sendFrame(const void* buffer, uint8_t bufferSize)
 {
   setMode(RF69OOK_MODE_STANDBY); // turn off receiver to prevent reception while filling fifo
-  while ((readReg(REG_IRQFLAGS1) & RF_IRQFLAGS1_MODEREADY) == 0x00); // wait for ModeReady
+  while ((readReg(REG_IRQFLAGS1) & RF_IRQFLAGS1_MODEREADY) == 0x00)
+    usleep(5); // wait for ModeReady
  
   writeReg(REG_DIOMAPPING1, RF_DIOMAPPING1_DIO0_00); // DIO0 is "Packet Sent"
 
@@ -140,12 +141,12 @@ void RFM69OOK::sendFrame(const void* buffer, uint8_t bufferSize)
   if (bufferSize > RF69OOK_MAX_DATA_LEN) bufferSize = RF69OOK_MAX_DATA_LEN;
   data[0] = REG_FIFO | 0x80;
   data[1] = bufferSize;
-  for (uint8_t i = 0; i < bufferSize; i++)
-    data[i+2] = ((unsigned char*)buffer)[i];
+  memcpy(data+2, buffer, bufferSize);
 
-  CLog::Default()->PrintBuffer(1, data, bufferSize+2);
+  if (m_Log)
+    m_Log->PrintBuffer(1, data, bufferSize+2);
 
-  int res = m_spi->xfer2(data, bufferSize+2, tmp, 0);
+  m_spi->xfer2(data, bufferSize+2, tmp, 0);
 
   // no need to wait for transmit mode to be ready since its handled by the radio
   setMode(RF69OOK_MODE_TX);
@@ -163,6 +164,7 @@ bool RFM69OOK::canSend()
     setMode(RF69OOK_MODE_STANDBY);
     return true;
   }
+
   return false;
 }
 
@@ -282,7 +284,8 @@ void RFM69OOK::setMode(byte newMode)
     _mode = newMode;
 }
 
-void RFM69OOK::sleep() {
+void RFM69OOK::sleep() 
+{
   setMode(RF69OOK_MODE_SLEEP);
 }
 
@@ -296,14 +299,17 @@ void RFM69OOK::setPowerLevel(byte powerLevel)
 
 void RFM69OOK::isr0() { selfPointer->interruptHandler(); }
 
-int RFM69OOK::readRSSI(bool forceTrigger) {
+int RFM69OOK::readRSSI(bool forceTrigger) 
+{
   int rssi = 0;
+  
   if (forceTrigger)
   {
     // RSSI trigger not needed if DAGC is in continuous mode
     writeReg(REG_RSSICONFIG, RF_RSSI_START);
     while ((readReg(REG_RSSICONFIG) & RF_RSSI_DONE) == 0x00); // Wait for RSSI_Ready
   }
+  
   rssi = -readReg(REG_RSSIVALUE);
   rssi >>= 1;
   return rssi;
@@ -326,7 +332,8 @@ void RFM69OOK::writeReg(byte addr, byte value)
   int res = m_spi->xfer2(data, 2, &tmp, 0);
 }
 
-void RFM69OOK::setHighPower(bool onOff) {
+void RFM69OOK::setHighPower(bool onOff) 
+{
   _isRFM69HW = onOff;
   writeReg(REG_OCP, _isRFM69HW ? RF_OCP_OFF : RF_OCP_ON);
   if (_isRFM69HW) // turning ON
@@ -335,7 +342,8 @@ void RFM69OOK::setHighPower(bool onOff) {
     writeReg(REG_PALEVEL, RF_PALEVEL_PA0_ON | RF_PALEVEL_PA1_OFF | RF_PALEVEL_PA2_OFF | _powerLevel); // enable P0 only
 }
 
-void RFM69OOK::setHighPowerRegs(bool onOff) {
+void RFM69OOK::setHighPowerRegs(bool onOff) 
+{
   writeReg(REG_TESTPA1, onOff ? 0x5D : 0x55);
   writeReg(REG_TESTPA2, onOff ? 0x7C : 0x70);
 }
@@ -365,7 +373,8 @@ void RFM69OOK::rcCalibration()
 }
 
 // checks if a packet was received and/or puts transceiver in receive (ie RX or listen) mode
-bool RFM69OOK::receiveDone() {
+bool RFM69OOK::receiveDone() 
+{
   if (_mode == RF69OOK_MODE_RX && PAYLOADLEN > 0)
   {
     setMode(RF69OOK_MODE_STANDBY); // enables interrupts

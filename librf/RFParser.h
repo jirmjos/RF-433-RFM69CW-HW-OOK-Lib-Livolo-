@@ -13,14 +13,28 @@ class RFLIB_API CRFParser
 	bool b_RunAnalyzer;
 	CRFAnalyzer *m_Analyzer;
 	string m_SavePath;
+
 public:
-	CRFParser(CLog *log, string SavePath="");
+//  Конструктор. Принимает в качестве параметра логгер и путь для сохранения файлов. Если путь пустой, файлы не сохраняются	
+	CRFParser(CLog *log, string savePath="");
 	virtual ~CRFParser();
 
+//	AddProtocol  добавляет декодер к общему пулу декодеров	
 	void AddProtocol(CRFProtocol*);
 	void AddProtocol(string protocol="all");
+
+/*  Пытается декодировать пакет пулом декодеров. 
+	Декодеры перебираются по очереди
+	В случае успеха возвращает строку вида <Имя декодера>:<Результат декодирования>
+*/	
 	string Parse(base_type*, size_t len);
+
+//  Включает анализатор для пакетов, которые не получилось декодировать. Пока не реализованно	
 	void EnableAnalyzer();
+
+//  Сохраняет пакет в файл	
 	void SaveFile(base_type* data, size_t size);
-	void SetSavePath(string SavePath);
+
+// Устанавливает путь для сохранения пакетов	
+	void SetSavePath(string savePath);
 };

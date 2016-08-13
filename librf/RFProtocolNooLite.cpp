@@ -85,7 +85,6 @@ CRFProtocolNooLite::nooLiteCommandType CRFProtocolNooLite::getCommand(const stri
 
 // The 1-Wire CRC scheme is described in Maxim Application Note 27:
 // "Understanding and Using Cyclic Redundancy Checks with Maxim iButton Products"
-
 uint8_t CRFProtocolNooLite::crc8(uint8_t *addr, uint8_t len)
 {
 	uint8_t crc = 0;
@@ -106,15 +105,13 @@ uint8_t CRFProtocolNooLite::crc8(uint8_t *addr, uint8_t len)
 	return crc;
 }
 
-
 unsigned char CRFProtocolNooLite::getByte(const string &bits, size_t first, size_t len)
 {
 	return (unsigned char)bits2long(reverse(bits.substr(first, len)));
 }
 
 bool CRFProtocolNooLite::bits2packet(const string& bits, uint8_t *packet, size_t *packetLen, uint8_t *CRC)
-{
-	 
+{	 
 	size_t bytes = (bits.substr(1).length()+7) / 8;
 	size_t extraBits = bits.substr(1).length() % 8;
 

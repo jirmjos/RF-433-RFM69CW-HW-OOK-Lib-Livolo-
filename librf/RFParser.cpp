@@ -65,13 +65,15 @@ void CRFParser::AddProtocol(CRFProtocol* p)
 
 string CRFParser::Parse(base_type* data, size_t len)
 {
+	// Пытаемся декодировать пакет каждым декодером по очереди
 	for_each(CRFProtocolList, m_Protocols, i)
 	{
 		string retval = (*i)->Parse(data, len);
 		if (retval.length())
-			return retval;
+			return retval;  // В случае успеха возвращаем результат
 	}
 
+	// В случае неуспеха пытаемся применить анализатор
 	if (b_RunAnalyzer)
 	{
 		if (!m_Analyzer)
@@ -80,7 +82,7 @@ string CRFParser::Parse(base_type* data, size_t len)
 		m_Analyzer->Analyze(data, len);
 	}
 
-
+	// Если указан путь для сохранения - пишем в файл пакет, который не смогли декодировать
 	if (m_SavePath.length())
 	{ 
 		for_each(CRFProtocolList, m_Protocols, i)

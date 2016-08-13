@@ -3,9 +3,6 @@
 class RFLIB_API CRFProtocolNooLite :
 	public CRFProtocol
 { 
-	unsigned char getByte(const string &bits, size_t first, size_t len=8);
-	bool bits2packet(const string& bits, uint8_t *packet, size_t *packetLen, uint8_t *CRC=NULL);
-	uint8_t crc8(uint8_t *addr, uint8_t len);
 	map<uint16_t,bool> m_lastFlip;
 
 public:
@@ -48,5 +45,9 @@ public:
 	virtual string data2bits(const string &data);
 	nooLiteCommandType getCommand(const string &name);
 
+private:
+	unsigned char getByte(const string &bits, size_t first, size_t len=8);
+	bool bits2packet(const string& bits, uint8_t *packet, size_t *packetLen, uint8_t *CRC=NULL);
+	uint8_t crc8(uint8_t *addr, uint8_t len);
 };
 

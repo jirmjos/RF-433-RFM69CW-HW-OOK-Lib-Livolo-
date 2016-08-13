@@ -1,6 +1,13 @@
 #include "stdafx.h"
 #include "RFProtocol.h"
 
+string c2s(char c)
+{
+	char tmp[2];
+	tmp[0] = c;
+	tmp[1] = 0;
+	return tmp;
+}
 
 CRFProtocol::CRFProtocol(range_array_type zeroLengths, range_array_type pulseLengths, int bits, int minRepeat, string PacketDelimeter)
 :m_ZeroLengths(zeroLengths), m_PulseLengths(pulseLengths), m_Bits(bits), m_MinRepeat(minRepeat), m_PacketDelimeter(PacketDelimeter)
@@ -14,30 +21,39 @@ CRFProtocol::~CRFProtocol()
 {
 }
 
-string c2s(char c)
-{
-	char tmp[2];
-	tmp[0] = c;
-	tmp[1] = 0;
-	return tmp;
-}
-
 void CRFProtocol::SetTransmitTiming(const uint16_t *timings)
 {
 	m_SendTimingPauses = m_SendTimingPulses = timings;
 	while (*m_SendTimingPulses++);
 }
 
+/*
+	Декодирование происходит в три этапа
 
+
+*/
 string CRFProtocol::Parse(base_type* data, size_t dataLen)
 {
 	Clean();
+// 	Декодирование происходит в три этапа
+
+/*
+	1 - разбиваем паузы и сигналы на группы в соответствии m_ZeroLengths и m_PulseLengths
+		первое совпадение паузы с диапазоном из m_ZeroLengths декодируется как 'a', второе 'b' и т.д.
+		первое совпадение сигнала с диапазоном из m_PulseLengths декодируется как 'A', второе 'A' и т.д.
+		если не попали ни в один из диапазонов  - '?'
+		результат работы этапа - строка вида "AaAbBaCc?d"
+*/
 
 	string decodedRaw = DecodeRaw(data, dataLen);
 
 	if (!decodedRaw.length())
 		return "";
 
+/*
+	2 - разбиваем полученную строку на пакеты и пытаемся декодировать каждый пакет в набор бит
+		результат работы функции - набор бит
+*/
 	string_vector rawPackets;
 	if (!SplitPackets(decodedRaw, rawPackets))
 		return "";
@@ -46,6 +62,7 @@ string CRFProtocol::Parse(base_type* data, size_t dataLen)
 
 	if (bits.length())
 	{
+//		3 - декодируем набор бит в осмысленные данные (команду, температуру etc)
 		string res = getName() + ":" + DecodeData(bits);
 //		uint8_t tmpBuffer[100];
 //		size_t tmpBufferSize = sizeof(tmpBuffer);
@@ -58,17 +75,6 @@ string CRFProtocol::Parse(base_type* data, size_t dataLen)
 
 	return "";
 }
- 
-/*
-string CRFProtocol::tryDecode(string data)
-{
-	if (data.length() >= m_Bits)
-		return getName() + ":" + data;
-	else
-		return "";
-}*/
-
-
 
 string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
 {
@@ -92,13 +98,13 @@ string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
 
 			if (!m_PulseLengths[pos][0])
 			{
-				if (m_Debug)
+				if (m_Debug) // Если включена отладка - явно пишем длины плохих пауз
 					decodedRaw += string("[") + itoa(len) + "}";
 				else
 					decodedRaw += "?";
 			}
 
-			pos = 0;
+			/*pos = 0;
 			for (; m_ZeroLengths[pos][0]; pos++)
 			{
 				if (len >= m_ZeroLengths[pos][0] && len <= m_ZeroLengths[pos][1])
@@ -110,6 +116,7 @@ string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
 
 			if (!m_ZeroLengths[pos][0])
 				decodedRawRev += "?";
+				*/
 		}
 		else
 		{
@@ -131,6 +138,7 @@ string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
 					decodedRaw += "?";
 			}
 
+			/*
 			pos = 0;
 			for (; m_PulseLengths[pos][0]; pos++)
 			{
@@ -142,17 +150,17 @@ string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
 			}
 
 			if (!m_PulseLengths[pos][0])
-				decodedRawRev += "?";
+				decodedRawRev += "?";*/
 		}
 	}
 
-	return decodedRaw +"?" + decodedRawRev; // TODO Remove and fix RST
+	return decodedRaw +"?" + decodedRawRev; // Для корректной работы в случае, если в результате бага драйвера "паузы/сигналы инвертированы"
+	// TODO Remove and fix RST
 }
 
 bool CRFProtocol::SplitPackets(const string &rawData, string_vector& rawPackets)
 {
 	SplitString(rawData, m_PacketDelimeter, rawPackets);
-
 	return rawPackets.size() > 1;
 }
 
@@ -220,6 +228,11 @@ string CRFProtocol::DecodeData(const string &raw)
 	return raw;
 }
 
+unsigned long CRFProtocol::bits2long(const string& s, size_t start, size_t len)
+{
+	return bits2long(s.substr(start, len));
+}
+
 unsigned long CRFProtocol::bits2long(const string &raw)
 {
 	unsigned long res=0;
@@ -246,6 +259,16 @@ string CRFProtocol::reverse(const string&s)
 
 	return res;
 }
+
+/*
+	Декодер манчестера:
+	raw - пакет
+	expectPulse - ожидаем первым сигналом пульс
+	shortPause - короткая пауза
+	longPause - длинная пауза
+	shortPulse - короткий сигнал
+	longPulse - длинный сигнал
+*/
 
 string CRFProtocol::ManchesterDecode(const string&raw, bool expectPulse, char shortPause, char longPause, char shortPulse, char longPulse)
 {
@@ -318,6 +341,7 @@ string CRFProtocol::ManchesterDecode(const string&raw, bool expectPulse, char sh
 	return res;
 }
 
+// заменяем <search><search> на <replace>
 string replaceDouble(const string &src, char search, char replace)
 {
 	string res = src;
@@ -337,6 +361,15 @@ string replaceDouble(const string &src, char search, char replace)
 	return res;
 }
 
+/*
+	Енкодер манчестера:
+	raw - пакет
+	invert - инвертированный манчестер
+	shortPause - короткая пауза
+	longPause - длинная пауза
+	shortPulse - короткий сигнал
+	longPulse - длинный сигнал
+*/
 string CRFProtocol::ManchesterEncode(const string&bits, bool invert, char shortPause, char longPause, char shortPulse, char longPulse)
 {
 	string res;
@@ -363,18 +396,18 @@ string CRFProtocol::ManchesterEncode(const string&bits, bool invert, char shortP
 	return res;
 }
 
-
 bool CRFProtocol::needDump(const string &rawData)
 {
 	return false;
 }
-
 
 void CRFProtocol::EncodeData(const string &data, uint16_t bitrate, uint8_t *buffer, size_t &bufferSize)
 {
 	EncodePacket(data2bits(data), bitrate, buffer, bufferSize);
 }
 
+// Кодируем пакет
+// TODO: Синхронизировать bitrate с драйвером радио
 void CRFProtocol::EncodePacket(const string &bits, uint16_t bitrate, uint8_t *buffer, size_t &bufferSize)
 {
 	string timings = bits2timings(bits);

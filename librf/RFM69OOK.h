@@ -54,6 +54,7 @@ typedef unsigned int uint32_t;
 #define FXOSC 32000000L
 
 class SPI;
+class CLog;
 
 class RFM69OOK {
   public:
@@ -71,7 +72,7 @@ class RFM69OOK {
       _isRFM69HW = isRFM69HW;
     }
 */
-    RFM69OOK(SPI* spi, int gpioInt);
+    RFM69OOK(SPI* spi, int gpioInt, CLog *log=NULL);
 
     bool initialize();
     uint32_t getFrequency();
@@ -117,6 +118,7 @@ class RFM69OOK {
     bool _isRFM69HW;
     byte _SPCR;
     byte _SPSR;
+    CLog *m_Log;
 
     void setMode(byte mode);
     void setHighPowerRegs(bool onOff);
