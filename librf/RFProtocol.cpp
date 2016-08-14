@@ -228,7 +228,10 @@ string CRFProtocol::DecodeBits(string_vector&rawPackets)
 		if (count >= m_MinRepeat)
 			return res;
 		else
+		{
+			m_DumpPacket = true;
 			m_Log->Printf(3, "Decoded '%s' but repeat %d of %d", res.c_str(), count, m_MinRepeat);
+		}
 	}
 
 	return "";

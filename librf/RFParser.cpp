@@ -70,11 +70,14 @@ void CRFParser::AddProtocol(CRFProtocol* p)
 
 string CRFParser::Parse(base_type** data, size_t* len)
 {
+	base_type* saveStart = data;
+
 	for(base_type* ptr=*data; ptr-*data<*len; ptr++)
 	{
 		if ((!CRFProtocol::isPulse(*ptr) && CRFProtocol::getLengh(*ptr)>m_maxPause*10/8 ) || (ptr-*data==*len-1))
 		{
 			size_t packetLen = ptr-*data;
+			m_Log->Printf(4, "Parse part of packet from %ld size %ld splitted by %ld", *data-saveStart, packetLen, CRFProtocol::getLengh(*ptr));
 			string res = Parse(*data, packetLen);
 			*data += packetLen+1;
 			*len -= packetLen+1;
