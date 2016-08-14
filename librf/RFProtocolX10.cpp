@@ -63,6 +63,9 @@ static const char COMMAND[16][8] = { "?0?", "?1?", "ON", "OFF", "DIM", "BRIGHT",
 
 string CRFProtocolX10::DecodeData(const string&packet)
 {
+	if (packet.length() != 32)
+		return "";
+
 	unsigned char byte1 = (unsigned char)bits2long(reverse(packet.substr(0, 8)));
 	unsigned char byte2 = (unsigned char)bits2long(reverse(packet.substr(16, 8)));
 	unsigned char unit = 0, command = 0;

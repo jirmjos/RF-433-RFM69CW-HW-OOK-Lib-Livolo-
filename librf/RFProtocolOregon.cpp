@@ -41,6 +41,9 @@ string CRFProtocolOregon::DecodePacket(const string& raw)
 
 	for_each_const(string, raw, c)
 	{
+		if (*c == 'a')
+			break;
+
 		if (expectPause)
 		{
 			if (*c!='b' && *c!='c')

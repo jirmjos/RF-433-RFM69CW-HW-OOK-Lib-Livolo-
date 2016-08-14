@@ -104,7 +104,8 @@ string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
 					decodedRaw += "?";
 			}
 
-			//*pos = 0;
+			//*
+			pos = 0;
 			for (; m_ZeroLengths[pos][0]; pos++)
 			{
 				if (len >= m_ZeroLengths[pos][0] && len <= m_ZeroLengths[pos][1])
@@ -115,7 +116,12 @@ string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
 			}
 
 			if (!m_ZeroLengths[pos][0])
-				decodedRawRev += "?";
+			{
+				if (m_Debug) // Если включена отладка - явно пишем длины плохих пауз
+					decodedRawRev += string("[") + itoa(len) + "]";
+				else
+					decodedRawRev += "?";
+			}
 				//*/
 		}
 		else
@@ -150,7 +156,12 @@ string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
 			}
 
 			if (!m_PulseLengths[pos][0])
-				decodedRawRev += "?";//*/
+			{
+				if (m_Debug)
+					decodedRawRev += string("[") + itoa(len) + "}";
+				else
+					decodedRawRev += "?";
+			}
 		}
 	}
 
@@ -212,10 +223,15 @@ string CRFProtocol::DecodeBits(string_vector&rawPackets)
 		}
 	}
 
-	if (res.length() && count >= m_MinRepeat)
-		return res;
-	else
-		return "";
+	if (res.length())
+	{ 
+		if (count >= m_MinRepeat)
+			return res;
+		else
+			m_Log->Printf(3, "Decoded '%s' but repeat %d of %d", res.c_str(), count, m_MinRepeat);
+	}
+
+	return "";
 }
 
 string CRFProtocol::DecodePacket(const string &raw)
