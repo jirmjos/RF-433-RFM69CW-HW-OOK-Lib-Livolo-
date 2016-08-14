@@ -466,20 +466,20 @@ string CRFProtocol::data2bits(const string &data)
 void CRFProtocol::getMinMax(base_type* minPause, base_type* maxPause, base_type* minPulse, base_type* maxPulse)
 {
 	*minPause = *maxPause = m_ZeroLengths[0][0];
-	*minPulse = *maxPulse = m_PulseLengths[0][0];
+	*minPulse = *maxPulse = m_PulseLengths[0][1];
 
 	int pos = 0;
 	for (; m_PulseLengths[pos][0]; pos++)
 	{
 		*minPulse = min (*minPulse, m_PulseLengths[pos][0]);
-		*maxPulse = max (*maxPulse, m_PulseLengths[pos][0]);
+		*maxPulse = max (*maxPulse, m_PulseLengths[pos][1]);
 	}
 
 	pos = 0;
 	for (; m_ZeroLengths[pos][0]; pos++)
 	{
 		*minPause = min (*minPause, m_ZeroLengths[pos][0]);
-		*maxPause = max (*maxPause, m_ZeroLengths[pos][0]);
+		*maxPause = max (*maxPause, m_ZeroLengths[pos][1]);
 	}
 }
 

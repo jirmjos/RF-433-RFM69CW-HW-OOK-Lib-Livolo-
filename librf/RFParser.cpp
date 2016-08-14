@@ -12,7 +12,8 @@
 #include "RFAnalyzer.h"
 
 CRFParser::CRFParser(CLog *log, string SavePath)
-	:b_RunAnalyzer(false), m_Analyzer(NULL), m_Log(log), m_SavePath(SavePath)
+	:b_RunAnalyzer(false), m_Analyzer(NULL), m_Log(log), m_SavePath(SavePath),
+	m_maxPause(0)
 {
 }
 
@@ -63,13 +64,16 @@ void CRFParser::AddProtocol(CRFProtocol* p)
 {
 	p->setLog(m_Log);
 	m_Protocols.push_back(p);
-	setMinMax();
+//	setMinMax();
 }
 
 // 1,2,3,1,100,1,1,2,3
 
 string CRFParser::Parse(base_type** data, size_t* len)
 {
+	if (m_maxPause==0)
+		setMinMax();
+
 	base_type* saveStart = *data;
 
 	for(base_type* ptr=*data; ptr-*data<*len; ptr++)

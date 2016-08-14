@@ -11,7 +11,7 @@ static range_type g_timing_pause[7] =
 
 static range_type g_timing_pulse[8] =
 {
-	{ 1, 1 },
+	{ 1101, 1101 },
 	{ 200, 615 },
 	{ 615, 1100 },
 	{ 0,0 }
