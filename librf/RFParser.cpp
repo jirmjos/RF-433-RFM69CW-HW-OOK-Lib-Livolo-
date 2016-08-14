@@ -70,7 +70,7 @@ void CRFParser::AddProtocol(CRFProtocol* p)
 
 string CRFParser::Parse(base_type** data, size_t* len)
 {
-	base_type* saveStart = data;
+	base_type* saveStart = *data;
 
 	for(base_type* ptr=*data; ptr-*data<*len; ptr++)
 	{
