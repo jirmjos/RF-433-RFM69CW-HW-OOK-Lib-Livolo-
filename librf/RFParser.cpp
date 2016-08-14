@@ -75,18 +75,24 @@ string CRFParser::Parse(base_type** data, size_t* len)
 		setMinMax();
 
 	base_type* saveStart = *data;
+	base_type splitDelay = m_maxPause*10/8;
 
 	for(base_type* ptr=*data; ptr-*data<*len; ptr++)
 	{
-		if ((!CRFProtocol::isPulse(*ptr) && CRFProtocol::getLengh(*ptr)>m_maxPause*10/8 ) || (ptr-*data==*len-1))
+		if ((!CRFProtocol::isPulse(*ptr) && CRFProtocol::getLengh(*ptr)>splitDelay) || (ptr-*data==*len-1))
 		{
 			size_t packetLen = ptr-*data;
 			if (packetLen>50)
 				m_Log->Printf(4, "Parse part of packet from %ld size %ld splitted by %ld", *data-saveStart, packetLen, CRFProtocol::getLengh(*ptr));
-			string res = Parse(*data, packetLen);
-			*data += packetLen+1;
-			*len -= packetLen+1;
 
+			string res = Parse(*data, packetLen);
+			
+			if (ptr-*data<*len-1)
+			{
+				*data += packetLen+1;
+				*len -= packetLen+1;
+			}
+			
 			if (res.length())
 				return res;
 		}
