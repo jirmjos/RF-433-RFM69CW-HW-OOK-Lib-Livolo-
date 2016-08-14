@@ -96,7 +96,14 @@ string CRFParser::Parse(base_type** data, size_t* len)
 	}
 
 	if (*len>MIN_PACKET_LEN)
-		return Parse(*data, *len);
+	{
+		string res = Parse(*data, *len);
+		if (res.length())
+		{
+			*data += (*len);
+			*len = 0;
+		}
+	}
 
 	return "";
 }
