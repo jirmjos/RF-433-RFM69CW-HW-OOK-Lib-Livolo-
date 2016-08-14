@@ -13,8 +13,11 @@ class RFLIB_API CRFParser
 	bool b_RunAnalyzer;
 	CRFAnalyzer *m_Analyzer;
 	string m_SavePath;
+	base_type m_minPause, m_maxPause, m_minPulse, m_maxPulse;
 
 public:
+	static const int MIN_PACKET_LEN = 20; // Минимально возможная длина пакета
+
 //  Конструктор. Принимает в качестве параметра логгер и путь для сохранения файлов. Если путь пустой, файлы не сохраняются	
 	CRFParser(CLog *log, string savePath="");
 	virtual ~CRFParser();
@@ -28,6 +31,7 @@ public:
 	В случае успеха возвращает строку вида <Имя декодера>:<Результат декодирования>
 */	
 	string Parse(base_type*, size_t len);
+	string Parse(base_type**, size_t *len);
 
 //  Включает анализатор для пакетов, которые не получилось декодировать. Пока не реализованно	
 	void EnableAnalyzer();
@@ -37,4 +41,6 @@ public:
 
 // Устанавливает путь для сохранения пакетов	
 	void SetSavePath(string savePath);
+private:
+	void setMinMax();
 };

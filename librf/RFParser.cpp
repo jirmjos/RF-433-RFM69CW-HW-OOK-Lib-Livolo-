@@ -55,16 +55,43 @@ void CRFParser::AddProtocol(string protocol)
 	}
 	else
 		throw CHaException(CHaException::ErrBadParam, protocol);
+
+	setMinMax();
 }
 
 void CRFParser::AddProtocol(CRFProtocol* p)
 {
 	p->setLog(m_Log);
 	m_Protocols.push_back(p);
+	setMinMax();
+}
+
+// 1,2,3,1,100,1,1,2,3
+
+string CRFParser::Parse(base_type** data, size_t* len)
+{
+	for(base_type* ptr=*data; ptr-*data<*len; ptr++)
+	{
+		if ((!CRFProtocol::isPulse(*ptr) && CRFProtocol::getLengh(*ptr)>m_maxPause*10/8 ) || (ptr-*data==*len-1))
+		{
+			size_t packetLen = ptr-*data;
+			string res = Parse(*data, packetLen);
+			*data += packetLen+1;
+			*len -= packetLen+1;
+
+			if (res.length())
+				return res;
+		}
+	}
+
+	return "";
 }
 
 string CRFParser::Parse(base_type* data, size_t len)
 {
+	if (len < MIN_PACKET_LEN)
+		return "";
+
 	// Пытаемся декодировать пакет каждым декодером по очереди
 	for_each(CRFProtocolList, m_Protocols, i)
 	{
@@ -130,4 +157,27 @@ void CRFParser::SaveFile(base_type* data, size_t size)
 void CRFParser::SetSavePath(string SavePath)
 {
 	m_SavePath = SavePath;
+}
+
+
+void CRFParser::setMinMax()
+{
+	bool first = true;
+	for_each(CRFProtocolList, m_Protocols, i)
+	{
+		if (first)
+		{
+			(*i)->getMinMax(&m_minPause, &m_maxPause, &m_minPulse, &m_maxPulse);
+			first = false;
+		}
+		else
+		{
+			base_type minPause, maxPause, minPulse, maxPulse;
+			(*i)->getMinMax(&minPause, &maxPause, &minPulse, &maxPulse);
+			m_minPause = min(m_minPause, minPause);
+			m_maxPause = max(m_maxPause, maxPause);
+			m_minPulse = min(m_minPulse, minPulse);
+			m_maxPulse = max(m_maxPulse, maxPulse);
+		}
+	}	
 }

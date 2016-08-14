@@ -104,7 +104,7 @@ string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
 					decodedRaw += "?";
 			}
 
-			/*pos = 0;
+			//*pos = 0;
 			for (; m_ZeroLengths[pos][0]; pos++)
 			{
 				if (len >= m_ZeroLengths[pos][0] && len <= m_ZeroLengths[pos][1])
@@ -116,7 +116,7 @@ string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
 
 			if (!m_ZeroLengths[pos][0])
 				decodedRawRev += "?";
-				*/
+				//*/
 		}
 		else
 		{
@@ -138,7 +138,7 @@ string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
 					decodedRaw += "?";
 			}
 
-			/*
+			//*
 			pos = 0;
 			for (; m_PulseLengths[pos][0]; pos++)
 			{
@@ -150,7 +150,7 @@ string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
 			}
 
 			if (!m_PulseLengths[pos][0])
-				decodedRawRev += "?";*/
+				decodedRawRev += "?";//*/
 		}
 	}
 
@@ -443,3 +443,24 @@ string CRFProtocol::data2bits(const string &data)
 {
 	throw CHaException(CHaException::ErrNotImplemented, "CRFProtocol::data2bits");
 }
+
+void CRFProtocol::getMinMax(base_type* minPause, base_type* maxPause, base_type* minPulse, base_type* maxPulse)
+{
+	*minPause = *maxPause = m_ZeroLengths[0][0];
+	*minPulse = *maxPulse = m_PulseLengths[0][0];
+
+	int pos = 0;
+	for (; m_PulseLengths[pos][0]; pos++)
+	{
+		*minPulse = min (*minPulse, m_PulseLengths[pos][0]);
+		*maxPulse = max (*maxPulse, m_PulseLengths[pos][0]);
+	}
+
+	pos = 0;
+	for (; m_ZeroLengths[pos][0]; pos++)
+	{
+		*minPause = min (*minPause, m_ZeroLengths[pos][0]);
+		*maxPause = max (*maxPause, m_ZeroLengths[pos][0]);
+	}
+}
+
