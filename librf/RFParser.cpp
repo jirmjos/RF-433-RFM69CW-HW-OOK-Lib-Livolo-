@@ -102,6 +102,7 @@ string CRFParser::Parse(base_type** data, size_t* len)
 		{
 			*data += (*len);
 			*len = 0;
+			return res;
 		}
 	}
 

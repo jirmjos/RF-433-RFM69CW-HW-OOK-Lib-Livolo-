@@ -12,7 +12,7 @@ string c2s(char c)
 CRFProtocol::CRFProtocol(range_array_type zeroLengths, range_array_type pulseLengths, int bits, int minRepeat, string PacketDelimeter)
 :m_ZeroLengths(zeroLengths), m_PulseLengths(pulseLengths), m_Bits(bits), m_MinRepeat(minRepeat), m_PacketDelimeter(PacketDelimeter)
 {
-	m_Debug = false;
+	m_Debug = true;
 	m_Log = CLog::Default();
 }
 
@@ -165,7 +165,7 @@ string CRFProtocol::DecodeRaw(base_type* data, size_t dataLen)
 		}
 	}
 
-	return decodedRaw +"?" + decodedRawRev; // Для корректной работы в случае, если в результате бага драйвера "паузы/сигналы инвертированы"
+	return decodedRaw; //+(m_Debug?"[XXX]": "?") + decodedRawRev; // Для корректной работы в случае, если в результате бага драйвера "паузы/сигналы инвертированы"
 	// TODO Remove and fix RST
 }
 
