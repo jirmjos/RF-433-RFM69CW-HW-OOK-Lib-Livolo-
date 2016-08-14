@@ -188,4 +188,5 @@ void CRFParser::setMinMax()
 			m_maxPulse = max(m_maxPulse, maxPulse);
 		}
 	}	
+	m_Log->Printf(3, "CRFProtocol decoders use pauses %ld-%ld pulses %ld-%ld", m_minPause, m_maxPause, m_minPulse, m_maxPulse);
 }
