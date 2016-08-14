@@ -79,7 +79,7 @@ string CRFParser::Parse(base_type** data, size_t* len)
 
 	for(base_type* ptr=*data; ptr-*data<*len; ptr++)
 	{
-		if ((!CRFProtocol::isPulse(*ptr) && CRFProtocol::getLengh(*ptr)>splitDelay) || (ptr-*data==*len-1))
+		if (!CRFProtocol::isPulse(*ptr) && CRFProtocol::getLengh(*ptr)>splitDelay)
 		{
 			size_t packetLen = ptr-*data;
 			if (packetLen>50)
@@ -87,16 +87,16 @@ string CRFParser::Parse(base_type** data, size_t* len)
 
 			string res = Parse(*data, packetLen);
 			
-			if (ptr-*data<*len-1)
-			{
-				*data += packetLen+1;
-				*len -= packetLen+1;
-			}
+			*data += packetLen+1;
+			*len -= packetLen+1;
 			
 			if (res.length())
 				return res;
 		}
 	}
+
+	if (*len>MIN_PACKET_LEN)
+		return Parse(*data, *len);
 
 	return "";
 }
