@@ -16,7 +16,7 @@ class RFLIB_API CRFParser
 	base_type m_minPause, m_maxPause, m_minPulse, m_maxPulse;
 
 public:
-	static const int MIN_PACKET_LEN = 20; // Минимально возможная длина пакета
+	static const int MIN_PACKET_LEN = 50; // Минимально возможная длина пакета
 
 //  Конструктор. Принимает в качестве параметра логгер и путь для сохранения файлов. Если путь пустой, файлы не сохраняются	
 	CRFParser(CLog *log, string savePath="");
