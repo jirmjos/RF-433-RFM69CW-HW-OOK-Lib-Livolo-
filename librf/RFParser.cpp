@@ -76,10 +76,13 @@ string CRFParser::Parse(base_type** data, size_t* len)
 
 	base_type* saveStart = *data;
 	base_type splitDelay = m_maxPause*10/8;
+	base_type splitPulse = m_minPulse/2;
 
 	for(base_type* ptr=*data; ptr-*data<*len; ptr++)
 	{
-		if (!CRFProtocol::isPulse(*ptr) && CRFProtocol::getLengh(*ptr)>splitDelay)
+		bool isPulse = CRFProtocol::isPulse(*ptr);
+		base_type len = CRFProtocol::getLengh(*ptr);
+		if ((!isPulse && len>splitDelay) || (isPulse && len<splitPulse))
 		{
 			size_t packetLen = ptr-*data;
 			if (packetLen>50)
