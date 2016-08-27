@@ -114,8 +114,6 @@ string CRFParser::Parse(base_type** data, size_t* length)
 
 string CRFParser::Parse(base_type* data, size_t len)
 {
-	return "";
-
 	if (len < MIN_PACKET_LEN)
 		return "";
 
