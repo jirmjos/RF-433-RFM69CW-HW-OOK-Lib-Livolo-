@@ -20,7 +20,7 @@ protected:
 	range_array_type m_ZeroLengths, m_PulseLengths;
 	int m_MinRepeat, m_Bits;
 	string m_PacketDelimeter;
-	bool m_Debug, m_DumpPacket;
+	bool m_Debug, m_DumpPacket, m_InvertPacket;
 	CLog *m_Log;
 	const uint16_t *m_SendTimingPauses;
 	const uint16_t *m_SendTimingPulses;

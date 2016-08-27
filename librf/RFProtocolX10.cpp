@@ -1,7 +1,14 @@
 #include "stdafx.h"
 #include "RFProtocolX10.h"
 
-static range_type g_Pulse[6] =
+static range_type g_Pulse[3] =
+{
+	{ 300,500 },
+	{ 501,800 },
+	{ 0,0 }
+};
+
+static range_type g_Zero[4] =
 {
 	{ 4400, 4700 },
 	{ 500,850 },
@@ -9,16 +16,9 @@ static range_type g_Pulse[6] =
 	{ 0,0 }
 };
 
-static range_type g_Zero[3] =
-{
-	{ 300,500 },
-	{ 501,800 },
-	{ 0,0 }
-};
-
 
 CRFProtocolX10::CRFProtocolX10()
-	:CRFProtocol(g_Zero, g_Pulse, 32, 2, "A")
+	:CRFProtocol(g_Zero, g_Pulse, 32, 2, "a")
 {
 }
 
@@ -33,15 +33,15 @@ string CRFProtocolX10::DecodePacket(const string&packet)
 
 	for_each_const(string, packet, i)
 	{
-		if (*i == 'B')
+		if (*i == 'b')
 			bits += "0";
-		else if (*i == 'C')
+		else if (*i == 'c')
 			bits += "1";
-		else if (*i == 'D')
+		else if (*i == 'd')
 			break;
-		else if (*i == 'a')
+		else if (*i == 'A')
 			continue;
-		else if (*i == 'b')
+		else if (*i == 'B')
 			continue;
 		else
 			return "";
