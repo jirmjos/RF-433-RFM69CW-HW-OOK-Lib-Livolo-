@@ -16,6 +16,7 @@ const char *g_Topics[] =
 	"value",
 	"temperature",
 	"rel_humidity",
+	"pressure"
 	"",
 };
 
