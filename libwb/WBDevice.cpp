@@ -169,7 +169,7 @@ bool CWBDevice::sourceExists(string source)
 void CWBDevice::setBySource(string source, string sourceType, string Value)
 {
 	if (sourceType=="X10")
-		Value = Value=="ON"?"1":"0";
+		Value = (Value==("ON"?"1":"0"));
 
 	for_each(CControlMap, m_Controls, i)
 	{
