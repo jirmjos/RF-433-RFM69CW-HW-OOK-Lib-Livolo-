@@ -155,6 +155,12 @@ void CWBDevice::UpdateValues(string_map &v)
 	}
 }
 
+string CWBDevice::getTopic(string Control)
+{
+	string base = "/devices/" + m_Name;
+	return base + "/controls/" + Control;
+}
+
 bool CWBDevice::sourceExists(string source)
 {
 	for_each(CControlMap, m_Controls, i)

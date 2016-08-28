@@ -66,6 +66,7 @@ public:
 	void CreateDeviceValues(string_map &);
 	void UpdateValues(string_map &);
 	const CControlMap *getControls(){return &m_Controls;};
+	string getTopic(string Control);
 
 };
 
