@@ -65,6 +65,7 @@ public:
 	string getS(string Name);
 	void CreateDeviceValues(string_map &);
 	void UpdateValues(string_map &);
+	const CControlMap *getControls(){return &m_Controls;};
 
 };
 
