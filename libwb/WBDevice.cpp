@@ -25,7 +25,7 @@ const char *g_Topics[] =
 	"WaterFlow", //	water_flow	m ^ 3 / hour	float
 	"WaterTotal", // consumption	water_consumption	m ^ 3	float
 	"Resistance", //	resistance	Ohm	float
-	"GasConcentration" //	concentration	ppm	float(unsigned)
+	"GasConcentration", //	concentration	ppm	float(unsigned)
 
 	"",
 };
