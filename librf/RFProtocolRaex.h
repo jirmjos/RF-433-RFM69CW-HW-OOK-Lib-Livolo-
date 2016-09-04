@@ -9,7 +9,7 @@ public:
 
 	virtual string getName() { return "Raex"; };
 	virtual string DecodePacket(const string&);
-
+	virtual string DecodeData(const string&); // Преобразование бит в данные
 
 };
 
