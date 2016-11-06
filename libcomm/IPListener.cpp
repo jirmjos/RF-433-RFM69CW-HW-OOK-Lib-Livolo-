@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "IPListener.h"
 #include "IPSupervisor.h"
-#include "../libs/libutils/strutils.h"
+#include "../libutils/strutils.h"
 
 CIPListener::CIPListener(void)
 {

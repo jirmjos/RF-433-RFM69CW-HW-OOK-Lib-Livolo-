@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "WebClient.h"
-#include "../libs/libutils/strutils.h"
+#include "../libutils/strutils.h"
 
 
 CWebClient::CWebClient(CSupervisor *Supervisor, int Timeout)

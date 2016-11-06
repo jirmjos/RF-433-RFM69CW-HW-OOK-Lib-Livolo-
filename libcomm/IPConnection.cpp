@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#include "../libs/libutils/strutils.h"
+#include "../libutils/strutils.h"
 #include "IPConnection.h"
 #include "IPSupervisor.h"
 
