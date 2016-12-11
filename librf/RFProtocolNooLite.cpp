@@ -59,7 +59,7 @@ static const char* g_nooLite_Commands[]=
 CRFProtocolNooLite::CRFProtocolNooLite()
 	:CRFProtocol(g_timing_pause, g_timing_pulse, 0, 1, "aAaAaAaAaAaAaAaAaAaAaAc")
 {
-	m_Debug = false;
+//	m_Debug = false;
 	SetTransmitTiming(g_transmit_data);
 }
 
