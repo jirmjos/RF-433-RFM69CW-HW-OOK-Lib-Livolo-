@@ -68,3 +68,10 @@ string CRFProtocolLivolo::DecodePacket(const string&packet)
 
 	return bits;
 }
+
+string CRFProtocolLivolo::DecodeData(const string& bits)
+{
+	int addr = bits2long(bits, 0, 16);
+	int cmd = bits2long(bits, 16, 7);
+
+}
