@@ -68,5 +68,7 @@ public:
 	string reverse(const string&);
 	void setLog(CLog *log) { m_Log = log; };
 	void getMinMax(base_type* minPause, base_type* maxPause, base_type* minPulse, base_type* maxPulse);
+	static string l2bits(uint16_t val, int bits);
+
 };
 

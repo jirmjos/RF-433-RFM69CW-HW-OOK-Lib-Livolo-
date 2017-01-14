@@ -94,21 +94,23 @@ string selectPulse(bool inBit, bool &high)
 
 	if (inBit) 
 	{
-		for (int i=0; i<2; i++) {
-	        if (high == true) {   // if current pulse should be high, send High Zero
-	        	result+='b'; 
-	        } else {              // else send Low Zero
-	        	result+='B'; 
-	        }
-	        high=!high; // invert next pulse
-	    }
-	} else {  
 		if (high == true) { // if current pulse should be high, send High One
-        	result+='c'; 
-		} else {             // else send Low One
-        	result+='C'; 
+			result += 'c';
 		}
-		high=!high; // invert next pulse
+		else {             // else send Low One
+			result += 'C';
+		}
+		high = !high; // invert next pulse
+	} else {
+		for (int i = 0; i<2; i++) {
+			if (high == true) {   // if current pulse should be high, send High Zero
+				result += 'b';
+			}
+			else {              // else send Low Zero
+				result += 'B';
+			}
+			high = !high; // invert next pulse
+		}
 	}
 
 	return result;
@@ -130,5 +132,27 @@ string CRFProtocolLivolo::bits2timings(const string &bits)
 
 string CRFProtocolLivolo::data2bits(const string &data)
 {
-	return data;
+	string proto, dataDetail;
+	SplitPair(data, ':', proto, dataDetail);
+	if (proto != "Livolo")
+		throw CHaException(CHaException::ErrBadParam, "Bad protocol in '" + data + "'");
+
+	string_map values;
+	SplitValues(dataDetail, values);
+
+	string sAddr = values["addr"];
+	string sCmd = values["cmd"];
+
+	if (!sAddr.length() || !sCmd.length())
+		throw CHaException(CHaException::ErrBadParam, "Bad command for Livolo:"+data);
+
+	uint16_t addr = (uint16_t)strtol(sAddr.c_str(), NULL, 16);
+	uint8_t cmd = atoi(sCmd);
+
+	if (!addr || !cmd)
+		throw CHaException(CHaException::ErrBadParam, "Bad command for Livolo:" + data);
+
+	string res = reverse(l2bits(addr, 16)) + reverse(l2bits(cmd, 7));
+
+	return res;
 }
