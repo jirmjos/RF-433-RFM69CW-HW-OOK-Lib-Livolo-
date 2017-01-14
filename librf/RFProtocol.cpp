@@ -489,3 +489,15 @@ void CRFProtocol::getMinMax(base_type* minPause, base_type* maxPause, base_type*
 	}
 }
 
+string CRFProtocol::l2bits(uint16_t val, int bits)
+{
+	string res;
+	for (int i = 0; i<bits; i++)
+	{
+		res = res + ((val & 1) ? '1' : '0');
+		val >>= 1;
+	}
+
+	return res;
+}
+

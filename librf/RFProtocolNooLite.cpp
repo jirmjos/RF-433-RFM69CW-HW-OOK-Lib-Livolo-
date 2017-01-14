@@ -268,18 +268,6 @@ string CRFProtocolNooLite::bits2timings(const string &bits)
 		+ 'b' + ManchesterEncode(bits, true, 'a', 'b', 'A', 'B');
 }
 
-string l2bits(uint16_t val, int bits)
-{
-	string res;
-	for (int i=0;i<bits;i++)
-	{
-		res = res+((val&1)?'1':'0');
-		val>>=1;
-	}
-
-	return res;
-}
-
 string CRFProtocolNooLite::data2bits(const string &data)
 {
 	string proto, dataDetail;
