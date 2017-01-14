@@ -58,10 +58,12 @@ public:
 #endif	
 	void AddControl(string Name, CWBControl::ControlType Type, bool ReadOnly, string Source="", string SourceType="");
 	bool sourceExists(string source);
+	bool controlExists(string source);
 	void setBySource(string source, string sourceType, string Value);
 	void set(string Name, string Value);
 	void set(string Name, float Value);
 	float getF(string Name);
+	int getI(string Name);
 	string getS(string Name);
 	void CreateDeviceValues(string_map &);
 	void UpdateValues(string_map &);
