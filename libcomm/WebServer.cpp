@@ -11,6 +11,14 @@ CWebServer::CWebServer()
 
 CWebServer::~CWebServer()
 {
+	if (m_Supervisor)
+	{
+		m_Supervisor->RemoveClient(this, true);
+
+		if (m_OwnSupervisor)
+			m_Supervisor->Stop(10000);
+
+	}
 }
 
 string CWebServer::urlDecode(string &SRC) {
@@ -30,7 +38,6 @@ string CWebServer::urlDecode(string &SRC) {
 	}
 	return (ret);
 }
-
 
 bool CWebServer::ParseHttpRequest(const string &Request, string &method, string &path, string_map &header, string_map &get_params, string_map &post_params)
 {
@@ -357,9 +364,9 @@ void CWebServer::SetSupervisor(CSupervisor *supervisor)
 void CWebServer::OnRequest(CConnection* Conn, string method, string url, string_map &params)
 {
 	string Reply;
-	Reply = "HTTP/1.1 404 Error\n";
-	Reply += "Content-Type: text/html\n";
-	Reply += "\n";
+	Reply = "HTTP/1.1 404 Error\r";
+	Reply += "Content-Type: text/html\r";
+	Reply += "\r";
 	Reply += "<html><body>";
 	Reply += "Not found";
 	Reply += "</body></html>";
