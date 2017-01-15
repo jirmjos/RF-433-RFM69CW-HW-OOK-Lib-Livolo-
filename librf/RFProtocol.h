@@ -41,6 +41,7 @@ public:
 */
 	CRFProtocol(range_array_type zeroLengths, range_array_type pulseLengths, int bits, int minRepeat, string PacketDelimeter );
 	virtual ~CRFProtocol();
+	void setCheckInverted(bool inverted){m_InvertPacket=inverted;};
 
 	// Раскодируем пакет
 	virtual string Parse(base_type*, size_t len);
@@ -67,5 +68,7 @@ public:
 	string reverse(const string&);
 	void setLog(CLog *log) { m_Log = log; };
 	void getMinMax(base_type* minPause, base_type* maxPause, base_type* minPulse, base_type* maxPulse);
+	static string l2bits(uint16_t val, int bits);
+
 };
 

@@ -59,7 +59,7 @@ static const char* g_nooLite_Commands[]=
 CRFProtocolNooLite::CRFProtocolNooLite()
 	:CRFProtocol(g_timing_pause, g_timing_pulse, 0, 1, "aAaAaAaAaAaAaAaAaAaAaAc")
 {
-	m_Debug = false;
+//	m_Debug = false;
 	SetTransmitTiming(g_transmit_data);
 }
 
@@ -266,18 +266,6 @@ string CRFProtocolNooLite::bits2timings(const string &bits)
 	return 'A'+ManchesterEncode(start, true, 'a', 'b', 'A', 'B')
 		+ 'b' + ManchesterEncode(bits, true, 'a', 'b', 'A', 'B')
 		+ 'b' + ManchesterEncode(bits, true, 'a', 'b', 'A', 'B');
-}
-
-string l2bits(uint16_t val, int bits)
-{
-	string res;
-	for (int i=0;i<bits;i++)
-	{
-		res = res+((val&1)?'1':'0');
-		val>>=1;
-	}
-
-	return res;
 }
 
 string CRFProtocolNooLite::data2bits(const string &data)

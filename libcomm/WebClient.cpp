@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "WebClient.h"
-#include "../libs/libutils/strutils.h"
+#include "../libutils/strutils.h"
 
 
 CWebClient::CWebClient(CSupervisor *Supervisor, int Timeout)
@@ -41,7 +41,11 @@ void CWebClient::Send(string url, string host, string Content)
 
 	m_Connection = new CIPConnection();
 	m_Connection->SetAutoDelete(true);
-	m_Connection->Connect(host + ":80");
+
+	if (host.find(':') ==-1)
+		host += ":80";
+
+	m_Connection->Connect(host);
 	m_Supervisor->AddConnection(this, m_Connection);
 	m_Connection->Send(req.c_str(), req.length());
 	time(&m_RequestTime);

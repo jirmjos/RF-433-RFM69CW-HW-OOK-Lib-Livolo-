@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "IPSupervisor.h"
 #include "SupervisorClient.h"
-#include "../libs/libutils/Exception.h"
+#include "../libutils/Exception.h"
 
 CSupervisor::CSupervisor(void)
 {
