@@ -152,6 +152,7 @@
     </ClCompile>
     <ClCompile Include="SupervisorClient.cpp" />
     <ClCompile Include="WebClient.cpp" />
+    <ClCompile Include="WebServer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Connection.h" />
@@ -164,6 +165,7 @@
     <ClInclude Include="SupervisorClient.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="WebClient.h" />
+    <ClInclude Include="WebServer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram1.cd" />
