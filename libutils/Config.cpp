@@ -35,7 +35,7 @@ void CConfig::Load(string ConfigFileName)
 	ifstream file(ConfigFileName.c_str());
 	bool parsingSuccessful = reader.parse(file, root);
 	if (!parsingSuccessful)
-		throw CHaException(CHaException::ErrParsingError, "Failed to parse %s. Error %s", ConfigFileName.c_str(), reader.getFormatedErrorMessages().c_str());
+		throw CHaException(CHaException::ErrParsingError, "Failed to parse %s. Error %s", ConfigFileName.c_str(), reader.getFormattedErrorMessages().c_str());
 	m_Document = root;
 #else
 #	error usupported configuration

@@ -9,13 +9,13 @@ typedef map<CConnection*, string> CConnectionData;
 class LIBCOMM_API CWebServer :
 	public CSupervisorClient
 {
-	CLog* m_webServerLog;
-	CSupervisor* m_Supervisor;
 	CIPListener *m_Listener;
 	CConnectionData m_ConnectionData;
 	bool m_OwnSupervisor;
 
 protected:
+	CLog* m_webServerLog;
+	CSupervisor* m_Supervisor;
 
 public:
 	CWebServer();
