@@ -33,7 +33,11 @@ void CConfig::Load(string ConfigFileName)
 	Json::Reader reader;
 	Json::Value root;
 	ifstream file(ConfigFileName.c_str());
-	bool parsingSuccessful = reader.parse(file, root);
+	string doc;
+	getline(file, doc, (char)EOF);
+	if (doc[0] == (char)0xef)
+		doc = doc.substr(3);
+	bool parsingSuccessful = reader.parse(doc, root, std::ifstream::binary);
 	if (!parsingSuccessful)
 		throw CHaException(CHaException::ErrParsingError, "Failed to parse %s. Error %s", ConfigFileName.c_str(), reader.getFormattedErrorMessages().c_str());
 	m_Document = root;
