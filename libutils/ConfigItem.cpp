@@ -149,10 +149,20 @@ string CConfigItem::getStr(string path, bool bMandatory, string defaultValue)
 
 		string sVal = val;
 		xmlFree(val);
-#elif defined(USE_JSON)
-		string sVal = m_Node[path].asCString();
-#endif
 		return sVal;
+#elif defined(USE_JSON)
+		if (path.length() == 0)
+			return m_Node.asCString();
+		else
+		{
+			Json::Value val = m_Node[path];
+
+			if (val.isNull() && !bMandatory)
+				return defaultValue;
+			else
+				return val.asCString();
+		}
+#endif
 	}
 }
 
@@ -180,10 +190,20 @@ int CConfigItem::getInt(string path, bool bMandatory, int defaultValue)
 
 		int iVal = atoi(val);
 		xmlFree(val);
-#elif defined(USE_JSON)
-		int iVal = m_Node[path].asInt();
-#endif
 		return iVal;
+#elif defined(USE_JSON)
+		if (path.length() == 0)
+			return m_Node.asInt();
+		else
+		{
+			Json::Value val = m_Node[path];
+
+			if (val.isNull() && !bMandatory)
+				return defaultValue;
+			else
+				return val.asInt();
+		}
+#endif
 	}
 }
 
@@ -287,9 +307,27 @@ void CConfigItem::SetNode(configNode node)
 bool CConfigItem::isNode()
 {
 #ifdef _LIBUTILS_USE_XML_LIBXML2
-		return m_Node && m_Node->type==XML_ELEMENT_NODE;
+	return m_Node && m_Node->type == XML_ELEMENT_NODE;
 #elif defined(USE_JSON)
 	return m_Node.isObject();
+#endif
+};
+
+bool CConfigItem::isStr()
+{
+#ifdef _LIBUTILS_USE_XML_LIBXML2
+	return m_Node && m_Node->type != XML_ELEMENT_NODE; // STR=INT for XML
+#elif defined(USE_JSON)
+	return m_Node.isString();
+#endif
+};
+
+bool CConfigItem::isInt()
+{
+#ifdef _LIBUTILS_USE_XML_LIBXML2
+	return m_Node && m_Node->type != XML_ELEMENT_NODE;  // STR=INT for XML
+#elif defined(USE_JSON)
+	return m_Node.isInt();
 #endif
 };
 

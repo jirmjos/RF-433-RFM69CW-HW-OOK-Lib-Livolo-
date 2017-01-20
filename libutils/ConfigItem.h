@@ -74,6 +74,8 @@ public:
 
 	bool isEmpty();
 	bool isNode();
+	bool isStr();
+	bool isInt();
 	configNode GetNode() { return m_Node; };
 	const CConfigItem& operator =(const CConfigItem& node) { SetNode(node.m_Node); return *this; };
 

@@ -9,12 +9,7 @@
 #	define HA_WINCE
 #	define snprintf _snprintf
 #elif defined(WIN32)
-#	define HA_WIN32
-#	define HA2
-#	define HAVE_JSONCPP_JSON_JSON_H
-#	define JSONCPP_DISABLE_DLL_INTERFACE_WARNING
-#	define HAVE_LIBXML_TREE_H
-#	define HAVE_LUA_H
+#	include "../../win32config.inc"
 //#define snprintf sprintf_s
 #else
 #	define HA_LINUX
@@ -28,6 +23,11 @@
 #	ifdef HAVE_LIBXML_TREE_H
 #		define USE_XML
 #	endif
+#	define USE_CONFIG
+#endif
+
+#ifdef WB
+#	define USE_JSON
 #	define USE_CONFIG
 #endif
 
