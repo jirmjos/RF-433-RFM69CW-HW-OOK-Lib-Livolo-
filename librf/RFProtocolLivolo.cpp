@@ -22,7 +22,7 @@ static range_type g_timing_pulse[8] =
 
 static const uint16_t g_transmit_data[]=
 {
-	500, 100, 300, 0,  // Pauses
+	500, 200, 400, 0,  // Pauses
 	500, 100, 300, 0   // Pulses
 };
 
@@ -145,7 +145,7 @@ string CRFProtocolLivolo::bits2timings(const string &bits)
 {
 	string result;
 
-	for (int pulse= 0; pulse <= 180; pulse = pulse+1) { // how many times to transmit a command
+	for (int pulse= 0; pulse <= 5; pulse = pulse+1) { // how many times to transmit a command
 		result+="A";
 		bool high = true; // first pulse is always high
 		for_each_const(string, bits, i)
