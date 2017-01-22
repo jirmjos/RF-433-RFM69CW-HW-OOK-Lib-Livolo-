@@ -108,6 +108,11 @@ CWBDevice::CWBDevice(string Name, string Description)
 
 }
 
+CWBDevice::CWBDevice()
+{
+
+}
+
 
 CWBDevice::~CWBDevice()
 {

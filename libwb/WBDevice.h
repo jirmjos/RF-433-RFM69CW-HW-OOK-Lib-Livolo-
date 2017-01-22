@@ -57,7 +57,7 @@ class LIBWB_API CWBDevice
 
 public:
 	CWBDevice(string Name, string Description);
-	//CWBDevice();
+	CWBDevice();
 	~CWBDevice();
 
 	string getName(){return m_Name;};
