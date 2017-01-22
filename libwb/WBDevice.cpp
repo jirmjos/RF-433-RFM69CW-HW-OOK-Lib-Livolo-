@@ -17,6 +17,7 @@ const char *g_Topics[] =
 	"temperature",
 	"rel_humidity",
 	"pressure",
+	"sound_level",
 	"PrecipitationRate", //(rainfall rate)	rainfall	mm per hour	float
 	"WindSpeed", //	wind_speed	m / s	float
 	"PowerPower", //	watt	float
@@ -30,10 +31,76 @@ const char *g_Topics[] =
 	"",
 };
 
-CWBDevice::CWBDevice()
+CWBControl::CWBControl(const string &name)
+	:Name(name), fValue(0), Readonly(false), Changed(false), Type(Error), Max(100)
 {
 
 }
+
+void CWBControl::enrich(const string &meta, const string &val)
+{
+	if (meta == "type")
+	{
+		setType(val);
+	}
+	else if (meta == "max")
+	{
+		Max = atoi(val);
+	}
+	else if (meta == "readonly")
+	{
+		Readonly = atoi(val)!=0;
+	}
+	else if (meta == "order")
+	{
+	}
+	else
+		throw CHaException(CHaException::ErrBadParam, "Unknown device meta '%s'", meta.c_str());
+}
+
+CWBControl::ControlType CWBControl::getType(const string& type)
+{
+	ControlType Type = CWBControl::Error;
+	for (int i = 0; g_Topics[i][0]; i++)
+	{
+		if (type == g_Topics[i])
+		{
+			Type = (CWBControl::ControlType)i;
+			break;
+		}
+	}
+
+	return Type;
+}
+
+string CWBControl::getTypeName(ControlType type)
+{
+	if (sizeof(g_Topics) / sizeof(g_Topics[0]) > (int)type)
+		return g_Topics[(int)type];
+	else
+		return g_Topics[0];
+}
+
+CWBControl::ControlType CWBControl::getType()
+{
+	return Type;
+}
+
+string CWBControl::getTypeName()
+{
+	return getTypeName(Type);
+}
+
+void CWBControl::setType(const string& type)
+{
+	Type = getType(type);
+}
+
+bool CWBControl::isLoaded()
+{
+	return Type != Error;
+}
+
 
 CWBDevice::CWBDevice(string Name, string Description)
 :m_Name(Name), m_Description(Description)
@@ -58,31 +125,30 @@ void CWBDevice::Init(CConfigItem config)
 	config.getList("Control", controls);
 	for_each(CConfigItemList, controls, control)
 	{
-		CWBControl *Control = new CWBControl;
-		Control->Name = (*control)->getStr("Name");
+		CWBControl *Control = new CWBControl((*control)->getStr("Name"));
 		Control->Source = (*control)->getStr("Source", false);
 		Control->SourceType = (*control)->getStr("SourceType", false);
 		Control->Readonly = (*control)->getInt("Readonly", false, 1) != 0;
-		string type = (*control)->getStr("Type");
-		Control->Type = CWBControl::Error;
-		for (int i = 0; g_Topics[i][0];i++)
-		{
-			if (type == g_Topics[i])
-			{
-				Control->Type = (CWBControl::ControlType)i;
-				break;
-			}
-		}
-
+		Control->Max = (*control)->getInt("Max", false, 100);
+		Control->setType((*control)->getStr("Type"));
 		m_Controls[Control->Name] = Control;
 	}
 }
 #endif
 
-void CWBDevice::AddControl(string Name, CWBControl::ControlType Type, bool ReadOnly, string Source, string SourceType)
+void CWBDevice::addControl(const string &Name)
 {
-	CWBControl *Control = new CWBControl;
+	if (m_Controls.find(Name) != m_Controls.end())
+		return;
+
+	CWBControl *Control = new CWBControl(Name);
 	Control->Name = Name;
+	m_Controls[Control->Name] = Control;
+}
+
+void CWBDevice::addControl(const string &Name, CWBControl::ControlType Type, bool ReadOnly, const string &Source, const string &SourceType)
+{
+	CWBControl *Control = new CWBControl(Name);
 	Control->Source = Source;
 	Control->SourceType = SourceType;
 	Control->Readonly = ReadOnly;
@@ -136,7 +202,17 @@ string CWBDevice::getS(string Name)
 	return i->second->sValue;
 }
 
-void CWBDevice::CreateDeviceValues(string_map &v)
+const CWBControl* CWBDevice::getControl(string Name)
+{
+	CControlMap::iterator i = m_Controls.find(Name);
+
+	if (i == m_Controls.end())
+		throw CHaException(CHaException::ErrBadParam, Name);
+
+	return i->second;
+}
+
+void CWBDevice::createDeviceValues(string_map &v)
 {
 	string base = "/devices/" + m_Name;
 	v[base + "/meta/name"] = m_Description;
@@ -152,7 +228,7 @@ void CWBDevice::CreateDeviceValues(string_map &v)
 	//UpdateValues(v);
 }
 
-void CWBDevice::UpdateValues(string_map &v)
+void CWBDevice::updateValues(string_map &v)
 {
 	string base = "/devices/" + m_Name;
 
@@ -172,7 +248,7 @@ string CWBDevice::getTopic(string Control)
 	return base + "/controls/" + Control;
 }
 
-bool CWBDevice::sourceExists(string source)
+bool CWBDevice::sourceExists(const string &source)
 {
 	for_each(CControlMap, m_Controls, i)
 	{
@@ -193,4 +269,48 @@ void CWBDevice::setBySource(string source, string sourceType, string Value)
 		if (i->second->Source == source)
 			set(i->first, Value);
 	}
+}
+
+void CWBDevice::subscribeToEntich(string_vector &v)
+{
+	if (m_Description.size()==0)
+		v.push_back("/devices/" + m_Name+ "/meta/#");
+
+	for_each(CControlMap, m_Controls, i)
+	{
+		if (!i->second->isLoaded())
+			v.push_back(getTopic(i->second->Name)+"/meta/#");
+	}
+}
+
+void CWBDevice::enrichDevice(const string &meta, const string &val)
+{
+	if (meta == "name")
+	{
+		m_Description = val;
+	}
+	else
+		throw CHaException(CHaException::ErrBadParam, "Unknown device meta '%s'", meta.c_str());
+}
+
+void CWBDevice::enrichControl(const string &control, const string &meta, const string &val)
+{
+	if (m_Controls.find(control) == m_Controls.end())
+		addControl(control);
+
+	m_Controls[control]->enrich(meta, val);
+}
+
+bool CWBDevice::isLoaded()
+{
+	if (m_Description.size() == 0)
+		return false;
+
+	for_each(CControlMap, m_Controls, i)
+	{
+		if (!i->second->isLoaded())
+			return false;
+	}
+
+	return true;
 }
