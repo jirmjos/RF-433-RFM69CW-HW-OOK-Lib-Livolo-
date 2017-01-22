@@ -18,6 +18,7 @@ struct LIBWB_API CWBControl
 		Temperature, //	temperature	°C	float
 		RelativeHumidity, //	rel_humidity	%, RH	float, 0 - 100
 		AtmosphericPressure, //	atmospheric_pressure	millibar(100 Pa)	float
+		SoundLevel,
 		PrecipitationRate, //(rainfall rate)	rainfall	mm per hour	float
 		WindSpeed, //	wind_speed	m / s	float
 		PowerPower, //	watt	float
@@ -35,6 +36,15 @@ struct LIBWB_API CWBControl
 	bool Readonly, Changed;
 	string sValue;
 	float fValue;
+	int Max;
+	CWBControl(const string &name);
+	void enrich(const string &meta, const string &val);
+	static ControlType getType(const string & type);
+	static string getTypeName(ControlType type);
+	ControlType getType();
+	string getTypeName();
+	void setType(const string& type);
+	bool isLoaded();
 };
 
 typedef map<string, CWBControl*> CControlMap;
@@ -44,7 +54,6 @@ class LIBWB_API CWBDevice
 	string m_Name;
 	string m_Description;
 	CControlMap m_Controls;
-
 
 public:
 	CWBDevice(string Name, string Description);
@@ -56,20 +65,30 @@ public:
 #ifdef USE_CONFIG
 	void Init(CConfigItem config);
 #endif	
+<<<<<<< HEAD
 	void AddControl(string Name, CWBControl::ControlType Type, bool ReadOnly, string Source="", string SourceType="");
 	bool sourceExists(string source);
 	bool controlExists(string source);
+=======
+	void addControl(const string &Name);
+	void addControl(const string &Name, CWBControl::ControlType Type, bool ReadOnly, const string &Source="", const string &SourceType="");
+	bool sourceExists(const string &source);
+>>>>>>> da8dec94369ab4ba1a7de7f903ce64189d735f3a
 	void setBySource(string source, string sourceType, string Value);
 	void set(string Name, string Value);
 	void set(string Name, float Value);
 	float getF(string Name);
 	int getI(string Name);
 	string getS(string Name);
-	void CreateDeviceValues(string_map &);
-	void UpdateValues(string_map &);
+	const CWBControl* getControl(string Name);
+	void createDeviceValues(string_map &);
+	void updateValues(string_map &);
 	const CControlMap *getControls(){return &m_Controls;};
 	string getTopic(string Control);
-
+	void subscribeToEntich(string_vector &v);
+	void enrichDevice(const string &meta, const string &val);
+	void enrichControl(const string &control, const string &meta, const string &val);
+	bool isLoaded();
 };
 
 typedef map<string, CWBDevice*> CWBDeviceMap;
