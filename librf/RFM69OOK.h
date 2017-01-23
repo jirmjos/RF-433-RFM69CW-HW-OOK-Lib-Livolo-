@@ -135,6 +135,7 @@ class RFM69OOK {
     int m_gpioInt;
 
     bool getGPIO(int num);
+    void exportGPIO(int num);
 };
 
 unsigned long millis(void);

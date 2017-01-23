@@ -22,17 +22,42 @@ static range_type g_timing_pulse[8] =
 
 static const uint16_t g_transmit_data[]=
 {
-	500, 100, 300, 0,  // Pauses
+	500, 200, 400, 0,  // Pauses
 	500, 100, 300, 0   // Pulses
 };
 
 
 
 /*  1234567890123456 1234567
-	0011001111010001 0001000 - A
-	0011001111010001 0010000 - B
-	0011001111010001 0111000 - C
-	0011001111010001 0101010 - D
+	0011 0011 1101 0001  000 100 0 - A
+	0011 0011 1101 0001  001 000 0 - B
+	0011 0011 1101 0001  011 100 0 - C
+	0011 0011 1101 0001  010 101 0 - D
+*/
+
+/*
+0110 1010 0100 = 06A4
+1 - 000 000 0
+2 - 110 000 0
+3 - 111 100 0
+4 - 001 100 0
+5 - 110 110 0
++ - 101 110 0 !
+- - 111 010 0 !
+I - 101 101 0 !
+II- 111 001 0 !
+
+1 - 101 000 0
+2 - 011 000 0
+3 - 000 110 0
+4 - 010 100 0
+5 - 100 100 0
++ - 111 111 0 !
+- - 010 010 0 !
+I - 000 101 0 !
+II- 001 001 0 !
+
+C - 110 1010
 */
 
 
@@ -120,7 +145,7 @@ string CRFProtocolLivolo::bits2timings(const string &bits)
 {
 	string result;
 
-	for (int pulse= 0; pulse <= 180; pulse = pulse+1) { // how many times to transmit a command
+	for (int pulse= 0; pulse <= 5; pulse = pulse+1) { // how many times to transmit a command
 		result+="A";
 		bool high = true; // first pulse is always high
 		for_each_const(string, bits, i)
