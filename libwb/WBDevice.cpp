@@ -16,7 +16,7 @@ const char *g_Topics[] =
 	"value",
 	"temperature",
 	"rel_humidity",
-	"pressure",
+	"atmospheric_pressure",
 	"sound_level",
 	"PrecipitationRate", //(rainfall rate)	rainfall	mm per hour	float
 	"WindSpeed", //	wind_speed	m / s	float
