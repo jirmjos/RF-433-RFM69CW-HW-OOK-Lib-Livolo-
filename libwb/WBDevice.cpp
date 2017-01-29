@@ -25,7 +25,11 @@ const char *g_Topics[] =
 	"voltage", //	volts	float
 	"water_flow", //	water_flow	m ^ 3 / hour	float
 	"WaterTotal", // consumption	water_consumption	m ^ 3	float
+<<<<<<< HEAD
 	"resistance", //	resistance	Ohm	float
+=======
+	"Resistance", //	resistance	Ohm	float
+>>>>>>> 83ec0efd0e1b4fd581c4b7a3143c02659b500d22
 	"concentration", //	concentration	ppm	float(unsigned)
 
 	"",
@@ -107,6 +111,11 @@ bool CWBControl::isLoaded()
 
 CWBDevice::CWBDevice(string Name, string Description)
 :m_Name(Name), m_Description(Description)
+{
+
+}
+
+CWBDevice::CWBDevice()
 {
 
 }
@@ -195,6 +204,16 @@ float CWBDevice::getF(string Name)
 	return i->second->fValue;
 }
 
+int CWBDevice::getI(string Name)
+{
+	CControlMap::iterator i = m_Controls.find(Name);
+
+	if (i == m_Controls.end())
+		throw CHaException(CHaException::ErrBadParam, Name);
+
+	return atoi(i->second->sValue);
+}
+
 string CWBDevice::getS(string Name)
 {
 	CControlMap::iterator i = m_Controls.find(Name);
@@ -260,6 +279,16 @@ bool CWBDevice::sourceExists(const string &source)
 	}
 
 	return false;
+}
+
+bool CWBDevice::controlExists(string Name)
+{
+	CControlMap::iterator i = m_Controls.find(Name);
+
+	if (i == m_Controls.end())
+		return false;
+
+	return true;
 }
 
 void CWBDevice::setBySource(string source, string sourceType, string Value)
