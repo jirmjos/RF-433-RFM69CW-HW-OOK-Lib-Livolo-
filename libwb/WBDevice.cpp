@@ -16,17 +16,17 @@ const char *g_Topics[] =
 	"value",
 	"temperature",
 	"rel_humidity",
-	"pressure",
+	"atmospheric_pressure",
 	"sound_level",
 	"PrecipitationRate", //(rainfall rate)	rainfall	mm per hour	float
 	"WindSpeed", //	wind_speed	m / s	float
 	"PowerPower", //	watt	float
 	"PowerConsumption", //	power_consumption	kWh	float
-	"VoltageVoltage", //	volts	float
-	"WaterFlow", //	water_flow	m ^ 3 / hour	float
+	"voltage", //	volts	float
+	"water_flow", //	water_flow	m ^ 3 / hour	float
 	"WaterTotal", // consumption	water_consumption	m ^ 3	float
-	"Resistance", //	resistance	Ohm	float
-	"GasConcentration", //	concentration	ppm	float(unsigned)
+	"resistance", //	resistance	Ohm	float
+	"concentration", //	concentration	ppm	float(unsigned)
 
 	"",
 };
@@ -94,6 +94,9 @@ string CWBControl::getTypeName()
 void CWBControl::setType(const string& type)
 {
 	Type = getType(type);
+
+	if (Type == Error && type != "" && type != "Error")
+		throw CHaException(CHaException::ErrBadParam, "Unknown device type '%s'", type.c_str());
 }
 
 bool CWBControl::isLoaded()
@@ -271,7 +274,7 @@ void CWBDevice::setBySource(string source, string sourceType, string Value)
 	}
 }
 
-void CWBDevice::subscribeToEntich(string_vector &v)
+void CWBDevice::subscribeToEnrich(string_vector &v)
 {
 	if (m_Description.size()==0)
 		v.push_back("/devices/" + m_Name+ "/meta/#");

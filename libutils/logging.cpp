@@ -73,8 +73,8 @@ CLog* CLog::GetLog(string Name)
 				if (pos>0)
 					m_BasePath  = m_BasePath.substr(0, pos+1);
 		#else
-				m_BasePath = ".";
-//				m_BasePath = "/run/";
+//				m_BasePath = ".";
+				m_BasePath = "/run/";
 		#endif
 
 		log->Open((m_BasePath+Name+".log").c_str());
