@@ -448,6 +448,9 @@ void CRFProtocol::EncodePacket(const string &bits, uint16_t bitrate, uint8_t *bu
 
 		for (int j = 0; j < bits; j++)
 		{
+			if (bufferSize < (bitNum+7)>>3)
+				throw CHaException(CHaException::ErrBadParam, "Buffer too small");
+			
 			if (pulse)
 				buffer[bitNum >> 3] |= (1 << (7-(bitNum & 7)));
 

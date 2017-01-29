@@ -389,13 +389,32 @@ bool RFM69OOK::receiveDone()
   return false;
 }
 
+void RFM69OOK::exportGPIO(int num)
+{
+  FILE *f = fopen("/sys/class/gpio/export", "w");
+  if (!f)
+  {
+    throw CHaException(CHaException::ErrBadParam, "Cannot open /sys/class/gpio/export");
+  }
+
+  char buffer[128];
+  snprintf(buffer, sizeof(buffer), "%d", num);
+
+  if (fwrite(buffer, strlen(buffer), 1, f)!=1)
+    throw CHaException(CHaException::ErrBadParam, "Write to export GPIO file failed");
+
+  fclose(f);
+}
+
 bool RFM69OOK::getGPIO(int num)
 {
   char buffer[128];
   snprintf(buffer, sizeof(buffer), "/sys/class/gpio/gpio%d/value", num);
   FILE *f = fopen(buffer, "r");
   if (!f)
-    throw CHaException(CHaException::ErrBadParam, buffer);
+  {
+    exportGPIO(num);
+  }
 
   if (fread(buffer, 1, 1, f)!=1)
     throw CHaException(CHaException::ErrBadParam, "Read GPIO file failed");

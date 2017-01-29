@@ -57,7 +57,7 @@ class LIBWB_API CWBDevice
 
 public:
 	CWBDevice(string Name, string Description);
-	//CWBDevice();
+	CWBDevice();
 	~CWBDevice();
 
 	string getName(){return m_Name;};
@@ -65,6 +65,7 @@ public:
 #ifdef USE_CONFIG
 	void Init(CConfigItem config);
 #endif	
+	bool controlExists(string source);
 	void addControl(const string &Name);
 	void addControl(const string &Name, CWBControl::ControlType Type, bool ReadOnly, const string &Source="", const string &SourceType="");
 	bool sourceExists(const string &source);
@@ -72,6 +73,7 @@ public:
 	void set(string Name, string Value);
 	void set(string Name, float Value);
 	float getF(string Name);
+	int getI(string Name);
 	string getS(string Name);
 	const CWBControl* getControl(string Name);
 	void createDeviceValues(string_map &);

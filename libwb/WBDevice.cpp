@@ -111,6 +111,11 @@ CWBDevice::CWBDevice(string Name, string Description)
 
 }
 
+CWBDevice::CWBDevice()
+{
+
+}
+
 
 CWBDevice::~CWBDevice()
 {
@@ -195,6 +200,16 @@ float CWBDevice::getF(string Name)
 	return i->second->fValue;
 }
 
+int CWBDevice::getI(string Name)
+{
+	CControlMap::iterator i = m_Controls.find(Name);
+
+	if (i == m_Controls.end())
+		throw CHaException(CHaException::ErrBadParam, Name);
+
+	return atoi(i->second->sValue);
+}
+
 string CWBDevice::getS(string Name)
 {
 	CControlMap::iterator i = m_Controls.find(Name);
@@ -260,6 +275,16 @@ bool CWBDevice::sourceExists(const string &source)
 	}
 
 	return false;
+}
+
+bool CWBDevice::controlExists(string Name)
+{
+	CControlMap::iterator i = m_Controls.find(Name);
+
+	if (i == m_Controls.end())
+		return false;
+
+	return true;
 }
 
 void CWBDevice::setBySource(string source, string sourceType, string Value)
