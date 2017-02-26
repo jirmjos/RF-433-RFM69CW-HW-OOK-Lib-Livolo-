@@ -152,15 +152,22 @@ string CConfigItem::getStr(string path, bool bMandatory, string defaultValue)
 		return sVal;
 #elif defined(USE_JSON)
 		if (path.length() == 0)
-			return m_Node.asCString();
+		{
+			if (m_Node.isString())
+				return m_Node.asCString();
+			else 
+				throw CHaException(CHaException::ErrAttributeNotFound, "attribute '%s' is not string", path.c_str());
+		}
 		else
 		{
 			Json::Value val = m_Node[path];
 
 			if (val.isNull() && !bMandatory)
 				return defaultValue;
-			else
+			else if (val.isString())
 				return val.asCString();
+			else 
+				throw CHaException(CHaException::ErrAttributeNotFound, "attribute '%s' is not string", path.c_str());
 		}
 #endif
 	}

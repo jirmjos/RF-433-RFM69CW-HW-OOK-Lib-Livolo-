@@ -18,7 +18,10 @@ LogParam::LogParam()
 #ifdef USE_CONFIG
 LogParam::LogParam(CConfigItem node)
 {
-	FileName = node.getStr("FileName", false, node.getStr("file_name"));
+	FileName = node.getStr("FileName", false, node.getStr("file_name", false, "")); 
+	if (FileName.length()==0) 
+		throw CHaException(CHaException::ErrAttributeNotFound, "FileName is not set");
+
 	LogTime = (node.getStr("LogTime", false, node.getStr("log_time", false, "yes"))=="yes")?true:false;
 	ConsoleLevel = node.getInt("ConsoleLevel", false, node.getInt("console_level", false, -1));
 	FileLevel = node.getInt("FileLevel", false, node.getInt("file_level", false, 0));
