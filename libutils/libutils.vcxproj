@@ -90,6 +90,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;JSON_DLL_BUILD;LIBUTILS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>jsoncpp.w32</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -153,7 +154,7 @@
     <ClCompile Include="ConfigItem.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Exception.cpp" />
-    <ClCompile Include="jsoncpp\jsoncpp.cpp" />
+    <ClCompile Include="jsoncpp.w32\jsoncpp.cpp" />
     <ClCompile Include="libutils.cpp" />
     <ClCompile Include="locks.cpp" />
     <ClCompile Include="logging.cpp" />

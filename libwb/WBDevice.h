@@ -80,7 +80,7 @@ public:
 	void updateValues(string_map &);
 	const CControlMap *getControls(){return &m_Controls;};
 	string getTopic(string Control);
-	void subscribeToEntich(string_vector &v);
+	void subscribeToEnrich(string_vector &v);
 	void enrichDevice(const string &meta, const string &val);
 	void enrichControl(const string &control, const string &meta, const string &val);
 	bool isLoaded();

@@ -18,10 +18,10 @@ LogParam::LogParam()
 #ifdef USE_CONFIG
 LogParam::LogParam(CConfigItem node)
 {
-	FileName = node.getStr("FileName");
-	LogTime = (node.getStr("LogTime", false, "yes")=="yes")?true:false;
-	ConsoleLevel = node.getInt("ConsoleLevel", false, -1);
-	FileLevel = node.getInt("FileLevel", false, 0);
+	FileName = node.getStr("FileName", false, node.getStr("file_name"));
+	LogTime = (node.getStr("LogTime", false, node.getStr("log_time", false, "yes"))=="yes")?true:false;
+	ConsoleLevel = node.getInt("ConsoleLevel", false, node.getInt("console_level", false, -1));
+	FileLevel = node.getInt("FileLevel", false, node.getInt("file_level", false, 0));
 }
 #endif
 
@@ -73,8 +73,8 @@ CLog* CLog::GetLog(string Name)
 				if (pos>0)
 					m_BasePath  = m_BasePath.substr(0, pos+1);
 		#else
-				m_BasePath = ".";
-//				m_BasePath = "/run/";
+//				m_BasePath = ".";
+				m_BasePath = "/run/";
 		#endif
 
 		log->Open((m_BasePath+Name+".log").c_str());
@@ -112,10 +112,13 @@ void CLog::Init(CConfigItem *Config)
 {
 	CConfigItemList nodes;
 	Config->getList("Log", nodes);
+
+	if (nodes.size()==0)
+		Config->getList("log", nodes);
 	
 	for(CConfigItemList::iterator i=nodes.begin();i!=nodes.end();i++)
 	{
-		m_LogsCfg[(*i)->getStr("Name")] = LogParam(**i);
+		m_LogsCfg[(*i)->getStr("Name", false, (*i)->getStr("name"))] = LogParam(**i);
 	}
 }
 #endif
