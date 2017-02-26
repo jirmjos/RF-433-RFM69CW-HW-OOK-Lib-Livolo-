@@ -85,6 +85,18 @@ string CWebClient::GetHeaders()
 	if (m_ContentType!=None)
 		header += "Content-Type: "+GetContentType()+"\n";
 
+	string cookies;
+	for_each(string_map, m_Cookie, cookie)
+	{
+		if (cookies.length())
+			cookies += "; ";
+
+		cookies += cookie->first + "=" + cookie->second;
+	}
+
+	if (cookies.length())
+		header += "Cookie: " + cookies + "\n";
+
 	return header;
 }
 
@@ -92,7 +104,6 @@ void CWebClient::OnRecieve(CConnection* Conn)
 {
 	char Buffer[4096];
 	size_t size = sizeof(Buffer) - 1;
-
 
 	try
 	{
@@ -152,17 +163,31 @@ void CWebClient::OnRecieve(CConnection* Conn)
 		}
 		else
 		{
-			string_vector v;
-			SplitString(line, ':', v);
-			if (v.size() != 2)
-				continue; // bad line?
+			int pos = line.find(':');
+			if (pos == line.npos)
+				continue;
 
-			string key = v[0];
-			string value = v[1];
-			if (value.length()>0 && value[0] == ' ')
+			string key = line.substr(0, pos);
+			string value = line.substr(pos + 1);
+			if (value.length() > 0 && value[0] == ' ')
 				value = value.substr(1);
 
-			m_Headers[key] = value;
+			if (key == "Set-Cookie")
+			{
+				//SplitValues
+				pos = value.find('=');
+				if (pos == value.npos)
+					continue;
+				string cookieKey = value.substr(0, pos);
+				string cookieValue = value.substr(pos + 1);
+				pos = cookieValue.find(";");
+				if (pos != cookieValue.npos)
+					cookieValue = cookieValue.substr(0, pos);
+
+				m_Cookie[cookieKey] = cookieValue;
+			}
+			else
+				m_Headers[key] = value;
 		}
 	}
 }
@@ -174,7 +199,6 @@ void CWebClient::ClearResponse(){
 	m_ResponseCode = 0;
 	m_ContentType = None;
 }
-
 
 bool CWebClient::isTimeout(){
 	return m_RequestTime>0 && m_RequestTime+m_Timeout<time(NULL);

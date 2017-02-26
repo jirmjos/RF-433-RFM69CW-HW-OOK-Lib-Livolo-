@@ -31,11 +31,12 @@ private:
 	RequestType m_RequestType;
 	string m_Response;
 	bool m_HaveResponse;
-	string_map m_Headers;
+	string_map m_Headers, m_Cookie;
 	CIPConnection *m_Connection;
 	int m_ResponseCode;
 	time_t m_RequestTime;
 	int m_Timeout;
+
 
 
 public:
