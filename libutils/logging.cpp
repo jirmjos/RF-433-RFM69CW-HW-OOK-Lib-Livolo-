@@ -121,7 +121,7 @@ void CLog::Init(CConfigItem *Config)
 	
 	for(CConfigItemList::iterator i=nodes.begin();i!=nodes.end();i++)
 	{
-		m_LogsCfg[(*i)->getStr("Name", false, (*i)->getStr("name"))] = LogParam(**i);
+		m_LogsCfg[(*i)->getStr("Name", false, (*i)->getStr("name", false, "Error"))] = LogParam(**i);
 	}
 }
 #endif
