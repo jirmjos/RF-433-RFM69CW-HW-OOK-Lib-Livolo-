@@ -27,10 +27,11 @@ struct LIBWB_API CWBControl
 		WaterFlow, //	water_flow	m ^ 3 / hour	float
 		WaterTotal, // consumption	water_consumption	m ^ 3	float
 		Resistance, //	resistance	Ohm	float
-		GasConcentration //	concentration	ppm	float(unsigned)
-
+		GasConcentration, //	concentration	ppm	float(unsigned)
+		Lux
 	};
 
+	time_t LastError;
 	ControlType Type;
 	string Name, Source, SourceType;
 	bool Readonly, Changed;

@@ -27,12 +27,12 @@ const char *g_Topics[] =
 	"WaterTotal", // consumption	water_consumption	m ^ 3	float
 	"resistance", //	resistance	Ohm	float
 	"concentration", //	concentration	ppm	float(unsigned)
-
+	"lux",
 	"",
 };
 
 CWBControl::CWBControl(const string &name)
-	:Name(name), fValue(0), Readonly(false), Changed(false), Type(Error), Max(100)
+	:Name(name), fValue(0), Readonly(false), Changed(false), Type(Error), Max(100), LastError(0)
 {
 
 }
@@ -49,10 +49,14 @@ void CWBControl::enrich(const string &meta, const string &val)
 	}
 	else if (meta == "readonly")
 	{
-		Readonly = atoi(val)!=0;
+		Readonly = atoi(val) != 0;
 	}
 	else if (meta == "order")
 	{
+	}
+	else if (meta == "error")
+	{
+		time(&LastError);
 	}
 	else
 		throw CHaException(CHaException::ErrBadParam, "Unknown device meta '%s'", meta.c_str());
@@ -175,6 +179,7 @@ void CWBDevice::set(string Name, string Value)
 	i->second->fValue = (float)atof(Value);
 	i->second->sValue = Value;
 	i->second->Changed = true;
+	i->second->LastError = 0;
 }
 
 void CWBDevice::set(string Name, float Value)
