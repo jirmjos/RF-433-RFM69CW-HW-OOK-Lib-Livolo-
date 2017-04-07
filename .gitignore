@@ -27,3 +27,11 @@
 *.exe
 *.out
 *.app
+
+Makefile
+
+#VC++
+*.vcxproj.filters
+*.vcxproj
+*.vcproj
+*.cd
