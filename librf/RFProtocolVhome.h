@@ -9,6 +9,7 @@ public:
 
 	virtual string getName() { return "VHome"; };
 	virtual string DecodePacket(const string&);
+	virtual string DecodeData(const string& bits);
 
 };
 

@@ -66,3 +66,16 @@ string CRFProtocolVhome::DecodePacket(const string&pkt)
 
 	return res;
 }
+
+string CRFProtocolVhome::DecodeData(const string& bits)
+{
+	if (bits.length()!=25 || bits2long(bits, 0, 4) != 7 || bits[24]!='0')
+		return "";
+
+	int addr = bits2long(bits, 4, 16);
+	int cmd = bits2long(bits, 20, 4);
+
+	char buffer[100];
+	snprintf(buffer, sizeof(buffer), "addr=%04x cmd=%d", addr, cmd);
+	return buffer;
+}
