@@ -11,6 +11,7 @@
 #include "RFProtocolRubitek.h"
 #include "RFProtocolVhome.h"
 #include "RFProtocolMotionSensor.h"
+#include "RFProtocolSmartHome.h"
 #include "RFAnalyzer.h"
 
 CRFParser::CRFParser(CLog *log, string SavePath)
@@ -50,6 +51,8 @@ void CRFParser::AddProtocol(string protocol)
 		AddProtocol(new CRFProtocolMotionSensor());
 	else if (protocol == "VHome")
 		AddProtocol(new CRFProtocolVhome());
+	else if (protocol == "SmartHome")
+		AddProtocol(new CRFProtocolSmartHome());
 	else if (protocol == "All")
 	{
 		AddProtocol(new CRFProtocolX10());
@@ -60,6 +63,7 @@ void CRFParser::AddProtocol(string protocol)
 		AddProtocol(new CRFProtocolNooLite());
 		AddProtocol(new CRFProtocolRubitek());
 		AddProtocol(new CRFProtocolVhome());
+		AddProtocol(new CRFProtocolSmartHome());
 
 		//AddProtocol(new CRFProtocolMotionSensor());
 	}
